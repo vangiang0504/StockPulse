@@ -23,6 +23,18 @@ export const routes: Routes = [
       {
         path: 'users/:id/edit',
         loadComponent: () => import('./features/users/user-form/user-form.component').then(m => m.UserFormComponent)
+      },
+      {
+        path: 'products',
+        loadComponent: () => import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent)
+      },
+      {
+        path: 'products/create',
+        loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
       }
     ]
   },
