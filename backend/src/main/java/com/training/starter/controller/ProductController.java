@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +34,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "List all products with pagination")
     public ApiResponse<PageResponse<ProductSummaryResponse>> getAll(
             @RequestParam(defaultValue = "0") int page,
@@ -45,12 +47,14 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Get product by ID")
     public ApiResponse<ProductResponse> getById(@PathVariable Long id) {
         return ApiResponse.success(productService.getById(id));
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Search products by SKU or Name")
     public ApiResponse<PageResponse<ProductSummaryResponse>> search(
             @RequestParam String q,
@@ -64,6 +68,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a new product")
     public ApiResponse<ProductResponse> create(@Valid @RequestBody CreateProductRequest request) {
@@ -71,6 +76,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Update an existing product")
     public ApiResponse<ProductResponse> update(
             @PathVariable Long id,

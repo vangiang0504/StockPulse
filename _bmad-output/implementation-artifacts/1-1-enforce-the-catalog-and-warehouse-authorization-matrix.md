@@ -1,6 +1,6 @@
 # Story 1.1: Enforce the Catalog and Warehouse Authorization Matrix
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -21,35 +21,35 @@ so that authenticated users can perform only the inventory operations assigned t
 
 ## Tasks / Subtasks
 
-- [ ] Extend the stored role model (AC: 1)
-  - [ ] Add `STAFF` and `MANAGER` to `Role` without renaming or removing `USER` or `ADMIN`.
-  - [ ] Preserve `User.role` as `EnumType.STRING`; do not add a Flyway migration because `users.role` is a string column with sufficient length.
-  - [ ] Confirm `UserDetailsServiceImpl` continues to expose every role as `ROLE_<ROLE>`.
-- [ ] Enforce Product authorization at the controller boundary (AC: 2, 3, 7)
-  - [ ] Permit `STAFF`, `MANAGER`, and `ADMIN` on list, detail, and search operations.
-  - [ ] Permit only `MANAGER` and `ADMIN` on create and update operations.
-  - [ ] Keep paths, request/response DTOs, pagination, sorting, and service calls unchanged.
-- [ ] Enforce Category authorization at the controller boundary (AC: 2, 3, 7)
-  - [ ] Permit `STAFF`, `MANAGER`, and `ADMIN` on list and detail operations.
-  - [ ] Permit only `MANAGER` and `ADMIN` on create and update operations.
-  - [ ] Preserve immutable code, partial-update, and hierarchy-validation behavior.
-- [ ] Enforce Warehouse authorization at the controller boundary (AC: 4, 5, 7)
-  - [ ] Permit `STAFF`, `MANAGER`, and `ADMIN` on list and detail operations.
-  - [ ] Permit only `ADMIN` on create and update operations.
-  - [ ] Preserve immutable code and soft-deactivation behavior; do not add a DELETE endpoint.
-- [ ] Make authentication and authorization failures API-consistent (AC: 3, 5, 6)
-  - [ ] Preserve the existing `@EnableMethodSecurity` configuration.
-  - [ ] Verify unauthenticated filter-chain failures return 401, not the framework default 403.
-  - [ ] Add one reusable security error component implementing `AuthenticationEntryPoint` and `AccessDeniedHandler`, then register it in `SecurityConfig` so filter-chain failures serialize the same `success: false`, `message`, and `timestamp` envelope as `ApiResponse.error(...)`.
-  - [ ] Preserve `GlobalExceptionHandler` handling for method-level `AccessDeniedException` and avoid leaking exception details.
+- [x] Extend the stored role model (AC: 1)
+  - [x] Add `STAFF` and `MANAGER` to `Role` without renaming or removing `USER` or `ADMIN`.
+  - [x] Preserve `User.role` as `EnumType.STRING`; do not add a Flyway migration because `users.role` is a string column with sufficient length.
+  - [x] Confirm `UserDetailsServiceImpl` continues to expose every role as `ROLE_<ROLE>`.
+- [x] Enforce Product authorization at the controller boundary (AC: 2, 3, 7)
+  - [x] Permit `STAFF`, `MANAGER`, and `ADMIN` on list, detail, and search operations.
+  - [x] Permit only `MANAGER` and `ADMIN` on create and update operations.
+  - [x] Keep paths, request/response DTOs, pagination, sorting, and service calls unchanged.
+- [x] Enforce Category authorization at the controller boundary (AC: 2, 3, 7)
+  - [x] Permit `STAFF`, `MANAGER`, and `ADMIN` on list and detail operations.
+  - [x] Permit only `MANAGER` and `ADMIN` on create and update operations.
+  - [x] Preserve immutable code, partial-update, and hierarchy-validation behavior.
+- [x] Enforce Warehouse authorization at the controller boundary (AC: 4, 5, 7)
+  - [x] Permit `STAFF`, `MANAGER`, and `ADMIN` on list and detail operations.
+  - [x] Permit only `ADMIN` on create and update operations.
+  - [x] Preserve immutable code and soft-deactivation behavior; do not add a DELETE endpoint.
+- [x] Make authentication and authorization failures API-consistent (AC: 3, 5, 6)
+  - [x] Preserve the existing `@EnableMethodSecurity` configuration.
+  - [x] Verify unauthenticated filter-chain failures return 401, not the framework default 403.
+  - [x] Add one reusable security error component implementing `AuthenticationEntryPoint` and `AccessDeniedHandler`, then register it in `SecurityConfig` so filter-chain failures serialize the same `success: false`, `message`, and `timestamp` envelope as `ApiResponse.error(...)`.
+  - [x] Preserve `GlobalExceptionHandler` handling for method-level `AccessDeniedException` and avoid leaking exception details.
 - [ ] Add authorization integration coverage (AC: 1-8)
-  - [ ] Add a `CatalogWarehouseAuthorizationIntegrationTest` that extends the existing `BaseIntegrationTest`, creates active users for all four roles, obtains or generates valid JWTs through existing application support, and sends requests through the real HTTP security chain.
-  - [ ] Verify unauthenticated access on a representative protected endpoint returns 401 and the error envelope.
-  - [ ] Verify `USER` cannot read or write Product, Category, or Warehouse resources.
-  - [ ] Verify `STAFF` can read Product/Category/Warehouse resources but cannot perform their protected writes.
-  - [ ] Verify `MANAGER` can read and write Product/Category resources, can read Warehouse resources, and cannot write Warehouse resources.
-  - [ ] Verify `ADMIN` can perform the representative read and write operations for all three resources.
-  - [ ] Assert denied requests do not invoke or mutate the underlying service/domain state.
+  - [x] Add a `CatalogWarehouseAuthorizationIntegrationTest` that extends the existing `BaseIntegrationTest`, creates active users for all four roles, obtains or generates valid JWTs through existing application support, and sends requests through the real HTTP security chain.
+  - [x] Verify unauthenticated access on a representative protected endpoint returns 401 and the error envelope.
+  - [x] Verify `USER` cannot read or write Product, Category, or Warehouse resources.
+  - [x] Verify `STAFF` can read Product/Category/Warehouse resources but cannot perform their protected writes.
+  - [x] Verify `MANAGER` can read and write Product/Category resources, can read Warehouse resources, and cannot write Warehouse resources.
+  - [x] Verify `ADMIN` can perform the representative read and write operations for all three resources.
+  - [x] Assert denied requests do not invoke or mutate the underlying service/domain state.
   - [ ] Run the complete backend test suite and confirm existing service tests remain green.
 
 ## Dev Notes
@@ -161,10 +161,26 @@ No frontend, DTO, mapper, service, repository, entity, migration, configuration-
 
 ### Agent Model Used
 
-To be completed by the implementation agent.
+GPT-5 Codex
 
 ### Debug Log References
 
+- `./mvnw.cmd test` on 2026-07-21: production and test compilation succeeded; the 37 existing service tests passed; the new Testcontainers integration test could not start because no Docker environment was available.
+
 ### Completion Notes List
 
+- Added `STAFF` and `MANAGER` while preserving string persistence and existing role names.
+- Applied the Product, Category, and Warehouse role matrix with controller method security.
+- Added a shared JSON authentication/authorization failure handler and registered it in the stateless filter chain.
+- Added full HTTP/JWT role-matrix integration coverage, including error envelopes and denied-write non-mutation assertions.
+- Verification remains pending only for executing the new Testcontainers suite in a Docker-enabled environment.
+
 ### File List
+
+- `backend/src/main/java/com/training/starter/enums/Role.java`
+- `backend/src/main/java/com/training/starter/security/SecurityConfig.java`
+- `backend/src/main/java/com/training/starter/security/RestSecurityErrorHandler.java`
+- `backend/src/main/java/com/training/starter/controller/ProductController.java`
+- `backend/src/main/java/com/training/starter/controller/CategoryController.java`
+- `backend/src/main/java/com/training/starter/controller/WarehouseController.java`
+- `backend/src/test/java/com/training/starter/security/CatalogWarehouseAuthorizationIntegrationTest.java`
