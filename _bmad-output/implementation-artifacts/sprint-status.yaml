@@ -1,0 +1,85 @@
+# generated: 2026-07-21
+# project: StockPulse
+# project_key: N/A
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+#
+# STATUS DEFINITIONS
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic currently being implemented
+#   - done: All stories in the epic are complete
+#
+# Story Status:
+#   - backlog: Story exists only in epics.md
+#   - ready-for-dev: Story file has been created and approved for implementation
+#   - in-progress: Development is actively underway
+#   - review: Implementation is ready for review
+#   - done: Story acceptance criteria are complete
+#
+# Retrospective Status:
+#   - optional: Retrospective may be completed but is not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES
+# ==============
+# - Move an epic to in-progress when its first story begins.
+# - Create an individual story file before changing it to ready-for-dev.
+# - Keep story keys stable because story artifacts use the same identifiers.
+# - Retrospectives are tracked after each epic.
+
+generated: 2026-07-21
+project: StockPulse
+project_key: N/A
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: in-progress
+  1-1-enforce-the-catalog-and-warehouse-authorization-matrix: ready-for-dev
+  1-2-activate-postgresql-product-full-text-search: backlog
+  1-3-complete-required-product-list-columns: backlog
+  1-4-replace-product-category-id-entry-with-a-dropdown: backlog
+  1-5-add-the-warehouse-list-route-and-navigation: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-add-the-remaining-stockpulse-schema-migrations: backlog
+  2-2-expose-stock-levels-low-stock-and-summary-apis: backlog
+  2-3-cache-individual-stock-lookups-and-invalidate-after-commit: backlog
+  2-4-add-the-stock-level-screen: backlog
+  2-5-refresh-and-verify-the-stock-reporting-view: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-create-and-inspect-stock-movements: backlog
+  3-2-approve-and-complete-movements-with-ordered-locking: backlog
+  3-3-expose-movement-lifecycle-endpoints: backlog
+  3-4-create-movement-forms-and-movement-history: backlog
+  3-5-review-approve-and-complete-movement-details: backlog
+  3-6-prove-the-movement-lifecycle-and-concurrent-export-safety: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-configure-stockpulse-events-retry-and-dead-letter-routing: backlog
+  4-2-create-alerts-and-reorder-suggestions-from-committed-stock: backlog
+  4-3-send-low-stock-email-through-mailhog: backlog
+  4-4-add-alert-and-reorder-action-screens: backlog
+  4-5-verify-retry-to-dlq-and-idempotent-redelivery: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-replace-the-starter-dashboard-with-stock-metrics: backlog
+  5-2-complete-and-verify-stockpulse-openapi-documentation: backlog
+  5-3-build-the-required-testcontainers-integration-suite: backlog
+  5-4-prove-the-end-to-end-stockpulse-journey: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-complete-the-team-1-cross-review: backlog
+  6-2-resolve-mentor-reported-defects: backlog
+  6-3-verify-the-performance-target: backlog
+  6-4-complete-the-stockpulse-readme: backlog
+  6-5-prepare-and-deliver-the-stockpulse-demo: backlog
+  epic-6-retrospective: optional
