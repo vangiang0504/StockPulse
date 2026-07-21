@@ -45,7 +45,7 @@ development_status:
   epic-1-retrospective: optional
 
   epic-2: backlog
-  2-1-add-the-remaining-stockpulse-schema-migrations: backlog
+  2-1-add-the-remaining-stockpulse-schema-migrations: ready-for-dev
   2-2-expose-stock-levels-low-stock-and-summary-apis: backlog
   2-3-cache-individual-stock-lookups-and-invalidate-after-commit: backlog
   2-4-add-the-stock-level-screen: backlog
