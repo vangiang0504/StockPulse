@@ -39,7 +39,7 @@ development_status:
   epic-1: in-progress
   1-1-enforce-the-catalog-and-warehouse-authorization-matrix: in-progress
   1-2-activate-postgresql-product-full-text-search: ready-for-dev
-  1-3-complete-required-product-list-columns: backlog
+  1-3-complete-required-product-list-columns: ready-for-dev
   1-4-replace-product-category-id-entry-with-a-dropdown: backlog
   1-5-add-the-warehouse-list-route-and-navigation: backlog
   epic-1-retrospective: optional
