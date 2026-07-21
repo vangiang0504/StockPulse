@@ -24,19 +24,19 @@ Phạm vi của tài liệu này chỉ gồm các requirement Week 1 (`REQ-STP-*
 
 **Requirement:** `REQ-STP-B-107`  
 **Story:** 2.1 — Add the remaining StockPulse schema migrations  
-**Trạng thái:** `NOT_IMPLEMENTED`
+**Trạng thái:** `IMPLEMENTED`
 
-- [ ] Giữ nguyên V1 và V2; không chỉnh sửa migration đã phát hành.
-- [ ] Tạo V3 cho `stock_levels`.
-- [ ] Tạo V4 cho `stock_movements` và `stock_movement_items`.
-- [ ] Tạo V5 cho `stock_alerts` và `reorder_suggestions`.
-- [ ] Tạo V6 cho indexes, Product search-vector backfill và cơ chế duy trì `search_vector` khi insert/update.
-- [ ] Tạo V7 cho `mv_stock_summary` và unique index phục vụ concurrent refresh.
-- [ ] Đồng bộ enum dạng string, foreign keys, unique constraints, timestamps, version và quantity constraints giữa SQL và JPA entities.
-- [ ] Kiểm tra database PostgreSQL 16 mới có thể migrate sạch từ V1 đến V7.
-- [ ] Kiểm tra database đang ở V2 có thể migrate tiếp mà không mất dữ liệu.
-- [ ] Kiểm tra Flyway validation thành công sau khi restart.
-- [ ] Viết integration test cho migrations, constraints, indexes, search trigger, materialized view và repeatable seed.
+- [x] Giữ nguyên V1 và V2; không chỉnh sửa migration đã phát hành.
+- [x] Tạo V3 cho `stock_levels`.
+- [x] Tạo V4 cho `stock_movements` và `stock_movement_items`.
+- [x] Tạo V5 cho `stock_alerts` và `reorder_suggestions`.
+- [x] Tạo V6 cho indexes, Product search-vector backfill và cơ chế duy trì `search_vector` khi insert/update.
+- [x] Tạo V7 cho `mv_stock_summary` và unique index phục vụ concurrent refresh.
+- [x] Đồng bộ enum dạng string, foreign keys, unique constraints, timestamps, version và quantity constraints giữa SQL và JPA entities.
+- [x] Kiểm tra database PostgreSQL 16 mới có thể migrate sạch từ V1 đến V7.
+- [x] Kiểm tra database đang ở V2 có thể migrate tiếp mà không mất dữ liệu.
+- [x] Kiểm tra Flyway validation thành công sau khi restart.
+- [x] Viết integration test cho migrations, constraints, indexes, search trigger, materialized view và repeatable seed.
 
 ## 3. Kích hoạt PostgreSQL full-text search cho Product
 
