@@ -169,7 +169,7 @@ class ProductServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         var entity = buildProduct(1L, "SKU-001", "Test");
-        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", true, LocalDateTime.now());
+        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", 10, 20, true, LocalDateTime.now());
         Page<Product> page = new PageImpl<>(List.of(entity), pageable, 1);
 
         when(productRepository.findAll(pageable)).thenReturn(page);
@@ -181,6 +181,8 @@ class ProductServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).sku()).isEqualTo("SKU-001");
+        assertThat(result.getContent().get(0).minStock()).isEqualTo(10);
+        assertThat(result.getContent().get(0).reorderPoint()).isEqualTo(20);
     }
 
     @Test
@@ -190,7 +192,7 @@ class ProductServiceTest {
         String normalizedQuery = "SKU-001 Test";
         Pageable pageable = PageRequest.of(0, 10);
         var entity = buildProduct(1L, "SKU-001", "Test");
-        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", true, LocalDateTime.now());
+        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", 10, 20, true, LocalDateTime.now());
         Page<Product> page = new PageImpl<>(List.of(entity), pageable, 1);
 
         when(productRepository.searchByVector(normalizedQuery, pageable)).thenReturn(page);
