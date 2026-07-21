@@ -1,0 +1,42 @@
+# --- Claude Code ---
+.claude/
+
+# --- Maven / Java build output ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# --- Angular / Node ---
+node_modules/
+dist/
+.angular/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+
+# --- IDE ---
+.idea/
+*.iml
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/private/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs & runtime ---
+*.log
+logs/
+
+# --- Local environment / secrets ---
+.env
+.env.local
+*.local.properties
+application-local.yml

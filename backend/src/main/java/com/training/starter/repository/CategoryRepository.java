@@ -1,13 +1,15 @@
 package com.training.starter.repository;
 
-import com.training.starter.entity.Warehouse;
+import com.training.starter.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
-public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
+@Repository
+public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    Optional<Warehouse> findByCode(String code);
+    Optional<Category> findByCode(String code);
 
     boolean existsByCode(String code);
 }
