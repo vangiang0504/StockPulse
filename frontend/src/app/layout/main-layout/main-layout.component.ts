@@ -30,10 +30,12 @@ import { AuthService } from '../../core/services/auth.service';
             <mat-icon matListItemIcon>inventory_2</mat-icon>
             <span matListItemTitle>Products</span>
           </a>
-          <a mat-list-item routerLink="/warehouses" routerLinkActive="active">
-            <mat-icon matListItemIcon>warehouse</mat-icon>
-            <span matListItemTitle>Warehouses</span>
-          </a>
+          @if (canViewWarehouses()) {
+            <a mat-list-item routerLink="/warehouses" routerLinkActive="active">
+              <mat-icon matListItemIcon>warehouse</mat-icon>
+              <span matListItemTitle>Warehouses</span>
+            </a>
+          }
         </mat-nav-list>
       </mat-sidenav>
 
@@ -63,4 +65,9 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class MainLayoutComponent {
   constructor(public authService: AuthService) {}
+
+  canViewWarehouses(): boolean {
+    const role = this.authService.getRole()?.replace(/^ROLE_/, '');
+    return role === 'STAFF' || role === 'MANAGER' || role === 'ADMIN';
+  }
 }

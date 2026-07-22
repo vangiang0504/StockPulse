@@ -6,15 +6,19 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
+import { catchError, forkJoin, throwError } from 'rxjs';
 import { ProductService } from '../product.service';
 import { CategoryService } from '../../categories/category.service';
 import { Category } from '../../categories/category.model';
 import { NotificationService } from '../../../core/services/notification.service';
+import { Category } from '../../categories/category.model';
+import { CategoryService } from '../../categories/category.service';
 
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSlideToggleModule, MatSelectModule],
   template: `
     <h2>{{ isEdit ? 'Edit Product' : 'Create Product' }}</h2>
 
@@ -42,6 +46,14 @@ import { NotificationService } from '../../../core/services/notification.service
           }
         </mat-select>
       </mat-form-field>
+
+      @if (categoryState === 'loading') {
+        <p class="category-state" role="status">Loading categories...</p>
+      } @else if (categoryState === 'empty') {
+        <p class="category-state category-error" role="alert">No categories are available.</p>
+      } @else if (categoryState === 'error') {
+        <p class="category-state category-error" role="alert">Categories could not be loaded.</p>
+      }
 
       <mat-form-field class="full-width">
         <mat-label>Unit</mat-label>
@@ -73,7 +85,7 @@ import { NotificationService } from '../../../core/services/notification.service
       }
 
       <div style="margin-top: 24px; display: flex; gap: 8px;">
-        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || loading">
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || loading || !referenceDataReady">
           {{ loading ? 'Saving...' : (isEdit ? 'Update' : 'Create') }}
         </button>
         <button mat-button type="button" (click)="onCancel()">Cancel</button>
@@ -86,12 +98,14 @@ export class ProductFormComponent implements OnInit {
   loading = false;
   productId: number | null = null;
   categories: Category[] = [];
+  categoryState: 'loading' | 'ready' | 'empty' | 'error' = 'loading';
+  private productReady = false;
 
   form = this.fb.group({
     sku: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(255)]],
     description: [''],
-    categoryId: [null as number | null, Validators.required],
+    categoryId: [{ value: null as number | null, disabled: true }, Validators.required],
     unit: ['PCS', [Validators.required, Validators.maxLength(20)]],
     minStock: [10, [Validators.required, Validators.min(0)]],
     maxStock: [1000, [Validators.required, Validators.min(0)]],
@@ -103,6 +117,7 @@ export class ProductFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
+    private categoryService: CategoryService,
     private categoryService: CategoryService,
     private route: ActivatedRoute,
     private router: Router,
@@ -117,7 +132,9 @@ export class ProductFormComponent implements OnInit {
       this.isEdit = true;
       this.productId = +id;
       this.form.get('sku')?.disable();
-      this.loadProduct();
+      this.loadEditData();
+    } else {
+      this.loadCategories();
     }
   }
 
@@ -132,30 +149,85 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
-  loadProduct(): void {
-    this.productService.getProductById(this.productId!).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.form.patchValue({
-            sku: res.data.sku,
-            name: res.data.name,
-            description: res.data.description,
-            categoryId: res.data.categoryId,
-            unit: res.data.unit,
-            minStock: res.data.minStock,
-            maxStock: res.data.maxStock,
-            reorderPoint: res.data.reorderPoint,
-            reorderQuantity: res.data.reorderQuantity,
-            active: res.data.active
-          });
-        }
-      },
-      error: () => this.notification.error('Failed to load product')
+  get referenceDataReady(): boolean {
+    return this.categoryState === 'ready' && (!this.isEdit || this.productReady);
+  }
+
+  private loadCategories(): void {
+    this.categoryService.getAllCategories().subscribe({
+      next: categories => this.setCategories(categories),
+      error: () => this.failCategoryLoad()
     });
   }
 
+  private loadEditData(): void {
+    forkJoin({
+      categories: this.categoryService.getAllCategories().pipe(
+        catchError(() => throwError(() => new Error('categories')))
+      ),
+      product: this.productService.getProductById(this.productId!).pipe(
+        catchError(() => throwError(() => new Error('product')))
+      )
+    }).subscribe({
+      next: ({ categories, product }) => {
+        this.setCategories(categories);
+        if (this.categoryState !== 'ready') {
+          return;
+        }
+        if (!product.success || !product.data) {
+          this.notification.error('Failed to load product');
+          return;
+        }
+        if (!categories.some(category => category.id === product.data!.categoryId)) {
+          this.categoryState = 'error';
+          this.form.controls.categoryId.disable();
+          this.notification.error('Product category is unavailable');
+          return;
+        }
+
+        this.form.patchValue({
+          sku: product.data.sku,
+          name: product.data.name,
+          description: product.data.description,
+          categoryId: product.data.categoryId,
+          unit: product.data.unit,
+          minStock: product.data.minStock,
+          maxStock: product.data.maxStock,
+          reorderPoint: product.data.reorderPoint,
+          reorderQuantity: product.data.reorderQuantity,
+          active: product.data.active
+        });
+        this.productReady = true;
+      },
+      error: (error: Error) => {
+        if (error.message === 'product') {
+          this.notification.error('Failed to load product');
+        } else {
+          this.failCategoryLoad();
+        }
+      }
+    });
+  }
+
+  private setCategories(categories: Category[]): void {
+    this.categories = categories;
+    this.categoryState = categories.length > 0 ? 'ready' : 'empty';
+    if (this.categoryState === 'ready') {
+      this.form.controls.categoryId.enable();
+    } else {
+      this.form.controls.categoryId.disable();
+    }
+  }
+
+  private failCategoryLoad(): void {
+    this.categories = [];
+    this.categoryState = 'error';
+    this.form.controls.categoryId.disable();
+    this.notification.error('Failed to load categories');
+  }
+
   onSubmit(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid || !this.referenceDataReady) return;
     this.loading = true;
 
     if (this.isEdit) {

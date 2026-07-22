@@ -17,11 +17,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findBySku(String sku);
 
-    Page<Product> findBySkuContainingIgnoreCaseOrNameContainingIgnoreCase(String sku, String name, Pageable pageable);
-
     @Query(
-        value = "SELECT * FROM products p WHERE p.search_vector @@ plainto_tsquery(:query)",
-        countQuery = "SELECT count(*) FROM products p WHERE p.search_vector @@ plainto_tsquery(:query)",
+        value = "SELECT * FROM products p WHERE p.search_vector @@ plainto_tsquery('simple', :query)",
+        countQuery = "SELECT count(*) FROM products p WHERE p.search_vector @@ plainto_tsquery('simple', :query)",
         nativeQuery = true
     )
     Page<Product> searchByVector(@Param("query") String query, Pageable pageable);

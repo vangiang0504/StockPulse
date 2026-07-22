@@ -5,6 +5,7 @@ import com.training.starter.dto.request.UpdateProductRequest;
 import com.training.starter.dto.response.ProductResponse;
 import com.training.starter.dto.response.ProductSummaryResponse;
 import com.training.starter.entity.Product;
+import com.training.starter.exception.BadRequestException;
 import com.training.starter.exception.DuplicateResourceException;
 import com.training.starter.exception.ResourceNotFoundException;
 import com.training.starter.mapper.ProductMapper;
@@ -13,14 +14,34 @@ import com.training.starter.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ProductServiceImpl implements ProductService {
+
+    private static final Map<String, String> SEARCH_SORT_COLUMNS = Map.ofEntries(
+            Map.entry("id", "id"),
+            Map.entry("sku", "sku"),
+            Map.entry("name", "name"),
+            Map.entry("description", "description"),
+            Map.entry("categoryId", "category_id"),
+            Map.entry("unit", "unit"),
+            Map.entry("minStock", "min_stock"),
+            Map.entry("maxStock", "max_stock"),
+            Map.entry("reorderPoint", "reorder_point"),
+            Map.entry("reorderQuantity", "reorder_quantity"),
+            Map.entry("active", "active"),
+            Map.entry("createdAt", "created_at"),
+            Map.entry("updatedAt", "updated_at")
+    );
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
@@ -83,8 +104,30 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductSummaryResponse> search(String query, Pageable pageable) {
-        log.debug("Searching products by query: {}", query);
-        return productRepository.findBySkuContainingIgnoreCaseOrNameContainingIgnoreCase(query, query, pageable)
+        if (query == null || query.isBlank()) {
+            throw new BadRequestException("Search text must not be blank");
+        }
+
+        String normalizedQuery = query.trim().replaceAll("\\s+", " ");
+        log.debug("Searching products by query: {}", normalizedQuery);
+        return productRepository.searchByVector(normalizedQuery, toNativeSearchPageable(pageable))
                 .map(productMapper::toSummaryResponse);
+    }
+
+    private Pageable toNativeSearchPageable(Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getSort().isUnsorted()) {
+            return pageable;
+        }
+
+        Sort nativeSort = Sort.by(pageable.getSort().stream()
+                .map(order -> {
+                    String column = SEARCH_SORT_COLUMNS.get(order.getProperty());
+                    if (column == null) {
+                        throw new BadRequestException("Unsupported product sort property: " + order.getProperty());
+                    }
+                    return order.withProperty(column);
+                })
+                .toList());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), nativeSort);
     }
 }

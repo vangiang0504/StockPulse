@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .fullName(request.fullName())
-                .role(Role.USER)
+                .role(Role.STAFF)
                 .active(true)
                 .build();
 

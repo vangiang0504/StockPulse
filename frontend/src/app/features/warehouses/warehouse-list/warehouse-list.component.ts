@@ -1,30 +1,33 @@
 import { Component, OnInit } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { WarehouseService } from '../warehouse.service';
-import { Warehouse } from '../warehouse.model';
+import { MatTableModule } from '@angular/material/table';
 import { NotificationService } from '../../../core/services/notification.service';
+import { Warehouse } from '../warehouse.model';
+import { WarehouseService } from '../warehouse.service';
 
 @Component({
   selector: 'app-warehouse-list',
   standalone: true,
-  imports: [MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatChipsModule, MatProgressSpinnerModule],
+  imports: [MatTableModule, MatPaginatorModule, MatChipsModule, MatIconModule, MatProgressSpinnerModule],
   template: `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2>Warehouses</h2>
-    </div>
+    <h2>Warehouses</h2>
 
     @if (loading) {
-      <div style="display: flex; justify-content: center; padding: 48px;">
+      <div class="state" aria-live="polite">
         <mat-spinner diameter="40"></mat-spinner>
+        <span class="visually-hidden">Loading warehouses</span>
+      </div>
+    } @else if (errorMessage) {
+      <div class="state error-state" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ errorMessage }}</p>
       </div>
     } @else if (warehouses.length === 0) {
-      <div style="text-align: center; padding: 48px; color: #888;">
-        <mat-icon style="font-size: 48px; width: 48px; height: 48px;">warehouse</mat-icon>
+      <div class="state empty-state">
+        <mat-icon>warehouse</mat-icon>
         <p>No warehouses found.</p>
       </div>
     } @else {
@@ -41,13 +44,15 @@ import { NotificationService } from '../../../core/services/notification.service
 
         <ng-container matColumnDef="address">
           <th mat-header-cell *matHeaderCellDef>Address</th>
-          <td mat-cell *matCellDef="let warehouse">{{ warehouse.address || '—' }}</td>
+          <td mat-cell *matCellDef="let warehouse">{{ warehouse.address }}</td>
         </ng-container>
 
         <ng-container matColumnDef="active">
           <th mat-header-cell *matHeaderCellDef>Status</th>
           <td mat-cell *matCellDef="let warehouse">
-            <mat-chip [highlighted]="warehouse.active">{{ warehouse.active ? 'Active' : 'Inactive' }}</mat-chip>
+            <mat-chip [highlighted]="warehouse.active">
+              {{ warehouse.active ? 'Active' : 'Inactive' }}
+            </mat-chip>
           </td>
         </ng-container>
 
@@ -56,17 +61,33 @@ import { NotificationService } from '../../../core/services/notification.service
       </table>
     }
 
-    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]"
-                   (page)="onPageChange($event)"></mat-paginator>
-  `
+    @if (!loading && !errorMessage) {
+      <mat-paginator
+        [length]="totalElements"
+        [pageIndex]="currentPage"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    }
+  `,
+  styles: [`
+    .state { min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; }
+    .state mat-icon { font-size: 48px; width: 48px; height: 48px; }
+    .error-state { color: #b00020; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  `]
 })
 export class WarehouseListComponent implements OnInit {
+  readonly displayedColumns = ['name', 'code', 'address', 'active'];
+  readonly pageSizeOptions = [10, 20, 50];
+
   warehouses: Warehouse[] = [];
-  displayedColumns = ['name', 'code', 'address', 'active'];
   totalElements = 0;
   pageSize = 20;
   currentPage = 0;
   loading = false;
+  errorMessage = '';
 
   constructor(
     private warehouseService: WarehouseService,
@@ -79,18 +100,20 @@ export class WarehouseListComponent implements OnInit {
 
   loadWarehouses(): void {
     this.loading = true;
+    this.errorMessage = '';
+
     this.warehouseService.getWarehouses(this.currentPage, this.pageSize).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.warehouses = res.data.content;
-          this.totalElements = res.data.totalElements;
+      next: response => {
+        if (!response?.success || !response.data || !Array.isArray(response.data.content)) {
+          this.showLoadError();
+          return;
         }
+
+        this.warehouses = response.data.content;
+        this.totalElements = response.data.totalElements;
         this.loading = false;
       },
-      error: () => {
-        this.loading = false;
-        this.notification.error('Failed to load warehouses');
-      }
+      error: () => this.showLoadError()
     });
   }
 
@@ -98,5 +121,13 @@ export class WarehouseListComponent implements OnInit {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadWarehouses();
+  }
+
+  private showLoadError(): void {
+    this.loading = false;
+    this.warehouses = [];
+    this.totalElements = 0;
+    this.errorMessage = 'Failed to load warehouses.';
+    this.notification.error('Failed to load warehouses');
   }
 }

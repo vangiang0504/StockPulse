@@ -5,6 +5,7 @@ import com.training.starter.dto.request.UpdateProductRequest;
 import com.training.starter.dto.response.ProductResponse;
 import com.training.starter.dto.response.ProductSummaryResponse;
 import com.training.starter.entity.Product;
+import com.training.starter.exception.BadRequestException;
 import com.training.starter.exception.DuplicateResourceException;
 import com.training.starter.exception.ResourceNotFoundException;
 import com.training.starter.mapper.ProductMapper;
@@ -12,6 +13,9 @@ import com.training.starter.repository.ProductRepository;
 import com.training.starter.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -176,18 +181,21 @@ class ProductServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).sku()).isEqualTo("SKU-001");
+        assertThat(result.getContent().get(0).minStock()).isEqualTo(10);
+        assertThat(result.getContent().get(0).reorderPoint()).isEqualTo(20);
     }
 
     @Test
     void search_validQuery_returnsPageOfProducts() {
         // Given
-        String query = "SKU-001";
+        String query = "  SKU-001   Test  ";
+        String normalizedQuery = "SKU-001 Test";
         Pageable pageable = PageRequest.of(0, 10);
         var entity = buildProduct(1L, "SKU-001", "Test");
         var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", 10, 20, true, LocalDateTime.now());
         Page<Product> page = new PageImpl<>(List.of(entity), pageable, 1);
 
-        when(productRepository.findBySkuContainingIgnoreCaseOrNameContainingIgnoreCase(query, query, pageable)).thenReturn(page);
+        when(productRepository.searchByVector(normalizedQuery, pageable)).thenReturn(page);
         when(productMapper.toSummaryResponse(entity)).thenReturn(summary);
 
         // When
@@ -196,6 +204,33 @@ class ProductServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).sku()).isEqualTo("SKU-001");
+        verify(productRepository).searchByVector(normalizedQuery, pageable);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "   ", "\t\r\n"})
+    void search_blankQuery_throwsBadRequestWithoutCallingRepository(String query) {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThatThrownBy(() -> productService.search(query, pageable))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Search text must not be blank");
+
+        verify(productRepository, never()).searchByVector(any(), any());
+    }
+
+    @Test
+    void search_defaultControllerSort_translatesMappedPropertyForNativeQuery() {
+        Pageable controllerPageable = PageRequest.of(0, 20, Sort.Direction.DESC, "createdAt");
+        Pageable nativePageable = PageRequest.of(0, 20, Sort.Direction.DESC, "created_at");
+        Page<Product> page = new PageImpl<>(List.of(), nativePageable, 0);
+        when(productRepository.searchByVector("phone", nativePageable)).thenReturn(page);
+
+        var result = productService.search("phone", controllerPageable);
+
+        assertThat(result).isEmpty();
+        verify(productRepository).searchByVector("phone", nativePageable);
     }
 
     private Product buildProduct(Long id, String sku, String name) {
