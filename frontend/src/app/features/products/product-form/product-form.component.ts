@@ -6,14 +6,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSelectModule } from '@angular/material/select';
 import { catchError, forkJoin, throwError } from 'rxjs';
 import { ProductService } from '../product.service';
 import { CategoryService } from '../../categories/category.service';
 import { Category } from '../../categories/category.model';
 import { NotificationService } from '../../../core/services/notification.service';
-import { Category } from '../../categories/category.model';
-import { CategoryService } from '../../categories/category.service';
 
 @Component({
   selector: 'app-product-form',
@@ -118,15 +115,12 @@ export class ProductFormComponent implements OnInit {
     private fb: FormBuilder,
     private productService: ProductService,
     private categoryService: CategoryService,
-    private categoryService: CategoryService,
     private route: ActivatedRoute,
     private router: Router,
     private notification: NotificationService
   ) {}
 
   ngOnInit(): void {
-    this.loadCategories();
-
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -136,17 +130,6 @@ export class ProductFormComponent implements OnInit {
     } else {
       this.loadCategories();
     }
-  }
-
-  loadCategories(): void {
-    this.categoryService.getCategories().subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.categories = res.data.content;
-        }
-      },
-      error: () => this.notification.error('Failed to load categories')
-    });
   }
 
   get referenceDataReady(): boolean {
