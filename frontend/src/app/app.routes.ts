@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -30,10 +31,12 @@ export const routes: Routes = [
       },
       {
         path: 'products/create',
+        canActivate: [roleGuard('MANAGER', 'ADMIN')],
         loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
       },
       {
         path: 'products/:id/edit',
+        canActivate: [roleGuard('MANAGER', 'ADMIN')],
         loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
       },
       {
