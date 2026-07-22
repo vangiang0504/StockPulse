@@ -8,6 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProductService } from '../product.service';
 import { ProductSummary } from '../product.model';
+import { CategoryService } from '../../categories/category.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
@@ -45,12 +46,22 @@ import { NotificationService } from '../../../core/services/notification.service
 
         <ng-container matColumnDef="categoryId">
           <th mat-header-cell *matHeaderCellDef>Category</th>
-          <td mat-cell *matCellDef="let product">{{ product.categoryId }}</td>
+          <td mat-cell *matCellDef="let product">{{ categoryName(product.categoryId) }}</td>
         </ng-container>
 
         <ng-container matColumnDef="unit">
           <th mat-header-cell *matHeaderCellDef>Unit</th>
           <td mat-cell *matCellDef="let product">{{ product.unit }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="minStock">
+          <th mat-header-cell *matHeaderCellDef>Min Stock</th>
+          <td mat-cell *matCellDef="let product">{{ product.minStock }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="reorderPoint">
+          <th mat-header-cell *matHeaderCellDef>Reorder Point</th>
+          <td mat-cell *matCellDef="let product">{{ product.reorderPoint }}</td>
         </ng-container>
 
         <ng-container matColumnDef="active">
@@ -78,21 +89,37 @@ import { NotificationService } from '../../../core/services/notification.service
 })
 export class ProductListComponent implements OnInit {
   products: ProductSummary[] = [];
-  displayedColumns = ['sku', 'name', 'categoryId', 'unit', 'active', 'actions'];
+  displayedColumns = ['sku', 'name', 'categoryId', 'unit', 'minStock', 'reorderPoint', 'active', 'actions'];
   totalElements = 0;
   pageSize = 20;
   currentPage = 0;
   loading = false;
 
+  /** categoryId -> category name, so the table can show a label instead of a raw id. */
+  private categoryNames = new Map<number, string>();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private productService: ProductService,
+    private categoryService: CategoryService,
     private notification: NotificationService
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
     this.loadProducts();
+  }
+
+  loadCategories(): void {
+    this.categoryService.getCategories().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.categoryNames = new Map(res.data.content.map(c => [c.id, c.name]));
+        }
+      },
+      error: () => this.notification.error('Failed to load categories')
+    });
   }
 
   loadProducts(): void {
@@ -110,6 +137,10 @@ export class ProductListComponent implements OnInit {
         this.notification.error('Failed to load products');
       }
     });
+  }
+
+  categoryName(id: number): string {
+    return this.categoryNames.get(id) ?? '—';
   }
 
   onPageChange(event: PageEvent): void {

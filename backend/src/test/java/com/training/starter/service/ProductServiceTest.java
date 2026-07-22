@@ -164,7 +164,7 @@ class ProductServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         var entity = buildProduct(1L, "SKU-001", "Test");
-        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", true, LocalDateTime.now());
+        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", 10, 20, true, LocalDateTime.now());
         Page<Product> page = new PageImpl<>(List.of(entity), pageable, 1);
 
         when(productRepository.findAll(pageable)).thenReturn(page);
@@ -184,7 +184,7 @@ class ProductServiceTest {
         String query = "SKU-001";
         Pageable pageable = PageRequest.of(0, 10);
         var entity = buildProduct(1L, "SKU-001", "Test");
-        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", true, LocalDateTime.now());
+        var summary = new ProductSummaryResponse(1L, "SKU-001", "Test", 1L, "PCS", 10, 20, true, LocalDateTime.now());
         Page<Product> page = new PageImpl<>(List.of(entity), pageable, 1);
 
         when(productRepository.findBySkuContainingIgnoreCaseOrNameContainingIgnoreCase(query, query, pageable)).thenReturn(page);

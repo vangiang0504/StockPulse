@@ -3,15 +3,18 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ProductService } from '../product.service';
+import { CategoryService } from '../../categories/category.service';
+import { Category } from '../../categories/category.model';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSlideToggleModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule],
   template: `
     <h2>{{ isEdit ? 'Edit Product' : 'Create Product' }}</h2>
 
@@ -32,8 +35,12 @@ import { NotificationService } from '../../../core/services/notification.service
       </mat-form-field>
 
       <mat-form-field class="full-width">
-        <mat-label>Category ID</mat-label>
-        <input matInput type="number" formControlName="categoryId">
+        <mat-label>Category</mat-label>
+        <mat-select formControlName="categoryId">
+          @for (category of categories; track category.id) {
+            <mat-option [value]="category.id">{{ category.name }} ({{ category.code }})</mat-option>
+          }
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field class="full-width">
@@ -78,6 +85,7 @@ export class ProductFormComponent implements OnInit {
   isEdit = false;
   loading = false;
   productId: number | null = null;
+  categories: Category[] = [];
 
   form = this.fb.group({
     sku: ['', [Validators.required, Validators.maxLength(50)]],
@@ -95,12 +103,15 @@ export class ProductFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
+    private categoryService: CategoryService,
     private route: ActivatedRoute,
     private router: Router,
     private notification: NotificationService
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -108,6 +119,17 @@ export class ProductFormComponent implements OnInit {
       this.form.get('sku')?.disable();
       this.loadProduct();
     }
+  }
+
+  loadCategories(): void {
+    this.categoryService.getCategories().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.categories = res.data.content;
+        }
+      },
+      error: () => this.notification.error('Failed to load categories')
+    });
   }
 
   loadProduct(): void {
