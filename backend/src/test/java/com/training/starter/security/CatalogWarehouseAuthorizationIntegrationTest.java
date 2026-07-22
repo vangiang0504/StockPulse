@@ -124,7 +124,7 @@ class CatalogWarehouseAuthorizationIntegrationTest extends BaseIntegrationTest {
     @Test
     void everyRoleFollowsTheReadAuthorizationMatrix() throws Exception {
         for (Role role : Role.values()) {
-            HttpStatus expected = role == Role.USER ? HttpStatus.FORBIDDEN : HttpStatus.OK;
+            HttpStatus expected = role == Role.STAFF ? HttpStatus.FORBIDDEN : HttpStatus.OK;
             String[] reads = {
                     "/api/v1/products",
                     "/api/v1/products/" + product.getId(),

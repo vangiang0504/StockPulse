@@ -67,7 +67,7 @@ so that authenticated users can perform only the inventory operations assigned t
 - Keep the enum constants exactly named `ADMIN` and `USER`; do not rename them, change their case, introduce aliases, or replace string persistence with ordinals.
 - Existing `ADMIN` rows must deserialize without data changes and retain full read/write access to Product, Category, and Warehouse endpoints.
 - Existing `USER` rows must deserialize and continue to authenticate, refresh tokens, and use starter functionality, but receive no implicit StockPulse Product, Category, or Warehouse permission; protected domain calls return 403 after authentication.
-- Preserve `AuthServiceImpl.register(...)` and `UserServiceImpl.create(...)` defaulting new accounts to `Role.USER`. This story does not add role selection to public registration or change User CRUD.
+- Preserve `AuthServiceImpl.register(...)` and `UserServiceImpl.create(...)` defaulting new accounts to `Role.STAFF`. This story does not add role selection to public registration or change User CRUD.
 - Preserve the current JWT contract: tokens identify the username and `JwtAuthenticationFilter` reloads `UserDetails`; do not add role claims or invalidate previously issued valid tokens solely because the enum gains values.
 - Preserve `UserDetailsServiceImpl` authority names as `ROLE_<stored enum name>`, including `ROLE_ADMIN` and `ROLE_USER`.
 - Do not edit V1 or V2 and do not add a migration. The existing `users.role VARCHAR(20)` column and `USER` default remain authoritative.
