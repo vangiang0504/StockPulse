@@ -1,6 +1,6 @@
 # Story 2.1: Add the Remaining StockPulse Schema Migrations
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

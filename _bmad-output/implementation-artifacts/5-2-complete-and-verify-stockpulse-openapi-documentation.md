@@ -1,6 +1,6 @@
 # Story 5.2: Complete and Verify Week 1 StockPulse OpenAPI Documentation
 
-Status: in-progress
+Status: done
 
 ## Story
 

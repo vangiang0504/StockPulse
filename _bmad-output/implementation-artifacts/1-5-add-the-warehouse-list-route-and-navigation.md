@@ -1,6 +1,6 @@
 # Story 1.5: Add the Warehouse List Route and Navigation
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
