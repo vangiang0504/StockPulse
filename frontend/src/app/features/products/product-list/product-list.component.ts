@@ -10,6 +10,7 @@ import { ProductService } from '../product.service';
 import { ProductSummary } from '../product.model';
 import { CategoryService } from '../../categories/category.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-product-list',
@@ -18,9 +19,11 @@ import { NotificationService } from '../../../core/services/notification.service
   template: `
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h2>Products</h2>
-      <a mat-raised-button color="primary" routerLink="/products/create">
-        <mat-icon>add</mat-icon> New Product
-      </a>
+      @if (canManage) {
+        <a mat-raised-button color="primary" routerLink="/products/create">
+          <mat-icon>add</mat-icon> New Product
+        </a>
+      }
     </div>
 
     @if (loading) {
@@ -74,7 +77,9 @@ import { NotificationService } from '../../../core/services/notification.service
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let product">
-            <a mat-icon-button [routerLink]="['/products', product.id, 'edit']"><mat-icon>edit</mat-icon></a>
+            @if (canManage) {
+              <a mat-icon-button [routerLink]="['/products', product.id, 'edit']"><mat-icon>edit</mat-icon></a>
+            }
           </td>
         </ng-container>
 
@@ -103,8 +108,18 @@ export class ProductListComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private authService: AuthService
   ) {}
+
+  /**
+   * Creating and updating products is restricted to MANAGER and ADMIN on the API,
+   * so STAFF should not be offered actions that would come back as 403.
+   */
+  get canManage(): boolean {
+    const role = this.authService.getRole();
+    return role === 'MANAGER' || role === 'ADMIN';
+  }
 
   ngOnInit(): void {
     this.loadCategories();
