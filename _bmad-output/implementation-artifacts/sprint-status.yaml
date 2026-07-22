@@ -1,4 +1,4 @@
-# generated: 2026-07-21
+# generated: 2026-07-22
 # project: StockPulse
 # project_key: N/A
 # tracking_system: file-system
@@ -29,23 +29,23 @@
 # - Keep story keys stable because story artifacts use the same identifiers.
 # - Retrospectives are tracked after each epic.
 
-generated: 2026-07-21
+generated: 2026-07-22
 project: StockPulse
 project_key: N/A
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 
 development_status:
-  epic-1: in-progress
-  1-1-enforce-the-catalog-and-warehouse-authorization-matrix: in-progress
-  1-2-activate-postgresql-product-full-text-search: in-progress
-  1-3-complete-required-product-list-columns: ready-for-dev
-  1-4-replace-product-category-id-entry-with-a-dropdown: review
-  1-5-add-the-warehouse-list-route-and-navigation: ready-for-dev
+  epic-1: done
+  1-1-enforce-the-catalog-and-warehouse-authorization-matrix: done
+  1-2-activate-postgresql-product-full-text-search: done
+  1-3-complete-required-product-list-columns: done
+  1-4-replace-product-category-id-entry-with-a-dropdown: done
+  1-5-add-the-warehouse-list-route-and-navigation: done
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-add-the-remaining-stockpulse-schema-migrations: ready-for-dev
+  epic-2: in-progress
+  2-1-add-the-remaining-stockpulse-schema-migrations: done
   2-2-expose-stock-levels-low-stock-and-summary-apis: backlog
   2-3-cache-individual-stock-lookups-and-invalidate-after-commit: backlog
   2-4-add-the-stock-level-screen: backlog
@@ -69,9 +69,9 @@ development_status:
   4-5-verify-retry-to-dlq-and-idempotent-redelivery: backlog
   epic-4-retrospective: optional
 
-  epic-5: backlog
+  epic-5: in-progress
   5-1-replace-the-starter-dashboard-with-stock-metrics: backlog
-  5-2-complete-and-verify-stockpulse-openapi-documentation: ready-for-dev
+  5-2-complete-and-verify-stockpulse-openapi-documentation: done
   5-3-build-the-required-testcontainers-integration-suite: backlog
   5-4-prove-the-end-to-end-stockpulse-journey: backlog
   epic-5-retrospective: optional

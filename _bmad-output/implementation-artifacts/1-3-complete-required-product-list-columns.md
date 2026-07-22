@@ -1,6 +1,6 @@
 # Story 1.3: Complete Required Product List Columns
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

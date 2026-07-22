@@ -1,6 +1,6 @@
 # Story 1.4: Replace Product Category ID Entry with a Dropdown
 
-Status: review
+Status: done
 
 ## Story
 

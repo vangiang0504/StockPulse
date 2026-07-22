@@ -1,6 +1,6 @@
 # Story 1.1: Enforce the Catalog and Warehouse Authorization Matrix
 
-Status: in-progress
+Status: done
 
 ## Story
 

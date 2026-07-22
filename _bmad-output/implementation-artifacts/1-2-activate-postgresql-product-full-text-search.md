@@ -1,6 +1,6 @@
 # Story 1.2: Activate PostgreSQL Product Full-Text Search
 
-Status: in-progress
+Status: done
 
 ## Story
 
