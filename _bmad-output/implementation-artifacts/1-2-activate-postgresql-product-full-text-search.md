@@ -1,6 +1,6 @@
 # Story 1.2: Activate PostgreSQL Product Full-Text Search
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -19,25 +19,25 @@ so that I can find catalog items efficiently without changing the Product CRUD w
 
 ## Tasks / Subtasks
 
-- [ ] Align the existing vector query with V6 (AC: 1)
-  - [ ] Change both `plainto_tsquery(:query)` calls in `ProductRepository.searchByVector` to `plainto_tsquery('simple', :query)`.
-  - [ ] Keep `:query` parameter-bound in both result and count SQL.
-  - [ ] Do not edit `V6__create_indexes.sql` or add another migration.
-- [ ] Activate the vector search path in the existing service (AC: 2, 3)
-  - [ ] Normalize search input by trimming it and collapsing repeated whitespace before repository delegation.
-  - [ ] Throw the existing `BadRequestException` for null, empty, or whitespace-only input.
-  - [ ] Replace the substring-query delegation with one call to `searchByVector`, then preserve the existing `ProductMapper.toSummaryResponse` page mapping.
-  - [ ] Remove `findBySkuContainingIgnoreCaseOrNameContainingIgnoreCase` only if no caller remains.
-- [ ] Preserve the existing endpoint contract (AC: 3, 4)
-  - [ ] Keep `ProductController.search`, its route, parameters/defaults, STAFF/MANAGER/ADMIN authorization, and response wrapping unchanged.
-  - [ ] Verify that the native query works with the endpoint's current default `createdAt DESC` sort and zero-based `PageRequest`.
-  - [ ] If native-query sorting requires translation, use a fixed allow-list from supported Product sort properties to SQL column names; never interpolate arbitrary client text into native SQL.
+- [x] Align the existing vector query with V6 (AC: 1)
+  - [x] Change both `plainto_tsquery(:query)` calls in `ProductRepository.searchByVector` to `plainto_tsquery('simple', :query)`.
+  - [x] Keep `:query` parameter-bound in both result and count SQL.
+  - [x] Do not edit `V6__create_indexes.sql` or add another migration.
+- [x] Activate the vector search path in the existing service (AC: 2, 3)
+  - [x] Normalize search input by trimming it and collapsing repeated whitespace before repository delegation.
+  - [x] Throw the existing `BadRequestException` for null, empty, or whitespace-only input.
+  - [x] Replace the substring-query delegation with one call to `searchByVector`, then preserve the existing `ProductMapper.toSummaryResponse` page mapping.
+  - [x] Remove `findBySkuContainingIgnoreCaseOrNameContainingIgnoreCase` only if no caller remains.
+- [x] Preserve the existing endpoint contract (AC: 3, 4)
+  - [x] Keep `ProductController.search`, its route, parameters/defaults, STAFF/MANAGER/ADMIN authorization, and response wrapping unchanged.
+  - [x] Verify that the native query works with the endpoint's current default `createdAt DESC` sort and zero-based `PageRequest`.
+  - [x] If native-query sorting requires translation, use a fixed allow-list from supported Product sort properties to SQL column names; never interpolate arbitrary client text into native SQL.
 - [ ] Update only the affected tests (AC: 2-5)
-  - [ ] Update `ProductServiceTest.search_validQuery_returnsPageOfProducts` to verify normalized input is passed to `searchByVector` and results are mapped.
-  - [ ] Add null/empty/whitespace cases that expect `BadRequestException` and verify no search repository call.
-  - [ ] Add focused API-level coverage showing blank `q` returns HTTP 400 with the established error envelope.
-  - [ ] Add a focused PostgreSQL 16 integration test for SKU/name matching, case insensitivity, special-character safety, no match, default sorting, multiple pages, and count metadata.
-  - [ ] Reuse production V6 through Flyway in the integration test; do not duplicate its SQL or repeat Story 2.1 migration tests.
+  - [x] Update `ProductServiceTest.search_validQuery_returnsPageOfProducts` to verify normalized input is passed to `searchByVector` and results are mapped.
+  - [x] Add null/empty/whitespace cases that expect `BadRequestException` and verify no search repository call.
+  - [x] Add focused API-level coverage showing blank `q` returns HTTP 400 with the established error envelope.
+  - [ ] Add and successfully run a focused PostgreSQL 16 integration test for SKU/name matching, case insensitivity, special-character safety, no match, default sorting, multiple pages, and count metadata.
+  - [x] Reuse production V6 through Flyway in the integration test; do not duplicate its SQL or repeat Story 2.1 migration tests.
 
 ## Dev Notes
 
@@ -96,9 +96,24 @@ Explicitly do not modify Product CRUD files, frontend files, or `backend/src/mai
 
 ### Agent Model Used
 
+Codex (GPT-5)
+
 ### Debug Log References
+
+- `mvn '-Dtest=ProductServiceTest,ProductControllerTest' test` — PASS, 17 tests, 0 failures/errors.
+- `mvn '-Dtest=ProductSearchIntegrationTest' test` — BLOCKED before test execution because Testcontainers could not find a valid Docker environment.
 
 ### Completion Notes List
 
+- Existing implementation commit `507a09a` satisfies the repository, service normalization/delegation, safe native-sort mapping, unit-test, API-test, and PostgreSQL integration-test code requirements.
+- Story remains `in-progress` until the PostgreSQL 16 Testcontainers suite can run successfully on a Docker-enabled host.
+
 ### File List
 
+- `backend/src/main/java/com/training/starter/repository/ProductRepository.java`
+- `backend/src/main/java/com/training/starter/service/impl/ProductServiceImpl.java`
+- `backend/src/test/java/com/training/starter/service/ProductServiceTest.java`
+- `backend/src/test/java/com/training/starter/controller/ProductControllerTest.java`
+- `backend/src/test/java/com/training/starter/repository/ProductSearchIntegrationTest.java`
+- `_bmad-output/implementation-artifacts/1-2-activate-postgresql-product-full-text-search.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`

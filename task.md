@@ -72,19 +72,19 @@ Phạm vi của tài liệu này chỉ gồm các requirement Week 1 (`REQ-STP-*
 
 **Requirement:** `REQ-STP-F-102`  
 **Story:** 1.4 — Replace Product category ID entry with a dropdown  
-**Trạng thái:** `PARTIALLY_IMPLEMENTED`  
+**Trạng thái:** `COMPLETED`
 **Phụ thuộc:** Category list API và Story 1.1.
 
-- [ ] Thay numeric category input bằng Angular Material select.
-- [ ] Tạo hoặc tái sử dụng typed Category model/service để đọc Category API có pagination.
-- [ ] Vẫn gửi selected category ID theo Product request contract hiện có.
-- [ ] Giữ nguyên các field, validation và create/edit branching của Product form.
-- [ ] Giữ SKU ở trạng thái disabled khi edit.
-- [ ] Xử lý loading, empty và API-error states của Category options.
-- [ ] Không cho submit khi reference data bắt buộc chưa sẵn sàng.
-- [ ] Preselect đúng Category khi edit, kể cả Category nằm ở page tiếp theo của API.
-- [ ] Viết Angular service test cho response-envelope parsing.
-- [ ] Viết component tests cho loading, preselection, validation, payload ID, empty/error và create/edit behavior.
+- [x] Thay numeric category input bằng Angular Material select.
+- [x] Tạo hoặc tái sử dụng typed Category model/service để đọc Category API có pagination.
+- [x] Vẫn gửi selected category ID theo Product request contract hiện có.
+- [x] Giữ nguyên các field, validation và create/edit branching của Product form.
+- [x] Giữ SKU ở trạng thái disabled khi edit.
+- [x] Xử lý loading, empty và API-error states của Category options.
+- [x] Không cho submit khi reference data bắt buộc chưa sẵn sàng.
+- [x] Preselect đúng Category khi edit, kể cả Category nằm ở page tiếp theo của API.
+- [x] Viết Angular service test cho response-envelope parsing.
+- [x] Viết component tests cho loading, preselection, validation, payload ID, empty/error và create/edit behavior.
 
 ## 6. Thêm Warehouse list, route và sidebar navigation
 

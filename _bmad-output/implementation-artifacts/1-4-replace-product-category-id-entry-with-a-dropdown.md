@@ -1,6 +1,6 @@
 # Story 1.4: Replace Product Category ID Entry with a Dropdown
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -20,33 +20,33 @@ so that I can create or edit Products without knowing internal Category IDs.
 
 ## Tasks / Subtasks
 
-- [ ] Add a typed frontend Category API boundary (AC: 2, 6)
-  - [ ] Create a Category model matching the existing backend response fields: `id`, `name`, `code`, nullable `parentId`, and `createdAt`.
-  - [ ] Add a root-provided Category service under `features/categories` that builds its URL from `environment.apiUrl` and exposes a typed paginated list call with zero-based `page`, `size`, `sortBy`, and `sortDir` parameters.
-  - [ ] Return `Observable<ApiResponse<PageResponse<Category>>>`; do not use `any`, unwrap raw arrays, duplicate JWT headers, or change the backend Category API.
-  - [ ] Keep multi-page orchestration in one clearly testable place (service helper or Product form), requesting subsequent pages from the returned pagination metadata and merging by Category ID.
-- [ ] Replace only the Product form's Category control UI (AC: 1, 4)
-  - [ ] Import `MatSelectModule` into the existing standalone `ProductFormComponent`.
-  - [ ] Replace the number input with a `mat-select` bound to the existing `categoryId` control and render options with numeric `[value]="category.id"`.
-  - [ ] Display a business-readable option label such as `Name (CODE)` while preserving the submitted request property and numeric value.
-  - [ ] Preserve the rest of the inline form, validators, defaults, SKU edit disabling, request construction, notifications, and routes.
-- [ ] Load every Category page safely (AC: 2, 5, 6)
-  - [ ] Begin at page `0` with a bounded size such as `50` and a deterministic supported sort such as `name,ASC`.
-  - [ ] Accumulate page content until the response reports the last page (or the next page reaches `totalPages`); do not request a fixed set of pages or use `totalElements` as a page index.
-  - [ ] De-duplicate accumulated options by `id` and retain deterministic display ordering.
-  - [ ] Treat `success: false`, missing `data`, an HTTP error, or inconsistent pagination as a Category-load failure rather than silently enabling a partial selector.
-  - [ ] Expose distinct loading, loaded-empty, and failed states near the selector and keep submission disabled until non-empty reference data is ready.
-- [ ] Coordinate edit initialization with paginated options (AC: 3, 4)
-  - [ ] Load the Product detail and complete Category option set without relying on subscription timing; combine the streams or explicitly gate the patch until both have succeeded.
-  - [ ] Patch the existing Product form values after options are available so Angular Material can match the numeric `categoryId`, including when the matching Category arrived on page 1 or later.
-  - [ ] Verify numeric identity is preserved; do not compare string route/DOM values to numeric Category IDs.
-  - [ ] If the Product's Category is absent after a successful complete traversal, show a reference-data error and prevent submission instead of presenting a blank selection or silently choosing another Category.
-- [ ] Add focused Angular tests (AC: 2-7)
-  - [ ] Add Category service tests for URL/parameters and typed `ApiResponse<PageResponse<Category>>` handling.
-  - [ ] Add Product form component tests for first-page options and a two-or-more-page sequence where the existing Product's Category appears only on a later page; assert the select and form control contain that exact numeric ID.
-  - [ ] Assert traversal uses server metadata, stops at the last page, and sends a deterministic sort rather than assuming one page.
-  - [ ] Cover required validation, create and update payload IDs, SKU disabled on edit, Category loading, zero-category, unsuccessful-envelope, and HTTP-error behavior.
-  - [ ] Run the affected Jasmine/Karma tests and the frontend production build; no backend test or application-code change is required for this story.
+- [x] Add a typed frontend Category API boundary (AC: 2, 6)
+  - [x] Create a Category model matching the existing backend response fields: `id`, `name`, `code`, nullable `parentId`, and `createdAt`.
+  - [x] Add a root-provided Category service under `features/categories` that builds its URL from `environment.apiUrl` and exposes a typed paginated list call with zero-based `page`, `size`, `sortBy`, and `sortDir` parameters.
+  - [x] Return `Observable<ApiResponse<PageResponse<Category>>>`; do not use `any`, unwrap raw arrays, duplicate JWT headers, or change the backend Category API.
+  - [x] Keep multi-page orchestration in one clearly testable place (service helper or Product form), requesting subsequent pages from the returned pagination metadata and merging by Category ID.
+- [x] Replace only the Product form's Category control UI (AC: 1, 4)
+  - [x] Import `MatSelectModule` into the existing standalone `ProductFormComponent`.
+  - [x] Replace the number input with a `mat-select` bound to the existing `categoryId` control and render options with numeric `[value]="category.id"`.
+  - [x] Display a business-readable option label such as `Name (CODE)` while preserving the submitted request property and numeric value.
+  - [x] Preserve the rest of the inline form, validators, defaults, SKU edit disabling, request construction, notifications, and routes.
+- [x] Load every Category page safely (AC: 2, 5, 6)
+  - [x] Begin at page `0` with a bounded size such as `50` and a deterministic supported sort such as `name,ASC`.
+  - [x] Accumulate page content until the response reports the last page (or the next page reaches `totalPages`); do not request a fixed set of pages or use `totalElements` as a page index.
+  - [x] De-duplicate accumulated options by `id` and retain deterministic display ordering.
+  - [x] Treat `success: false`, missing `data`, an HTTP error, or inconsistent pagination as a Category-load failure rather than silently enabling a partial selector.
+  - [x] Expose distinct loading, loaded-empty, and failed states near the selector and keep submission disabled until non-empty reference data is ready.
+- [x] Coordinate edit initialization with paginated options (AC: 3, 4)
+  - [x] Load the Product detail and complete Category option set without relying on subscription timing; combine the streams or explicitly gate the patch until both have succeeded.
+  - [x] Patch the existing Product form values after options are available so Angular Material can match the numeric `categoryId`, including when the matching Category arrived on page 1 or later.
+  - [x] Verify numeric identity is preserved; do not compare string route/DOM values to numeric Category IDs.
+  - [x] If the Product's Category is absent after a successful complete traversal, show a reference-data error and prevent submission instead of presenting a blank selection or silently choosing another Category.
+- [x] Add focused Angular tests (AC: 2-7)
+  - [x] Add Category service tests for URL/parameters and typed `ApiResponse<PageResponse<Category>>` handling.
+  - [x] Add Product form component tests for first-page options and a two-or-more-page sequence where the existing Product's Category appears only on a later page; assert the select and form control contain that exact numeric ID.
+  - [x] Assert traversal uses server metadata, stops at the last page, and sends a deterministic sort rather than assuming one page.
+  - [x] Cover required validation, create and update payload IDs, SKU disabled on edit, Category loading, zero-category, unsuccessful-envelope, and HTTP-error behavior.
+  - [x] Run the affected Jasmine/Karma tests and the frontend production build; no backend test or application-code change is required for this story.
 
 ## Dev Notes
 
@@ -121,9 +121,27 @@ Explicitly do not modify backend code, Product request/detail models, Product ro
 
 ### Agent Model Used
 
+Codex (GPT-5)
+
 ### Debug Log References
+
+- `npm test -- --watch=false --browsers=ChromeHeadless` — PASS, 16 tests.
+- `npm run build -- --configuration production` — PASS, production bundle generated successfully.
 
 ### Completion Notes List
 
+- Added a typed Category boundary with metadata-driven, zero-based pagination, deterministic sorting, ID de-duplication, and strict envelope/pagination validation.
+- Replaced only the numeric Category input with a named Material select while preserving numeric Product request payloads and all existing create/edit behavior.
+- Added explicit loading, empty, error, and missing-edit-category states; submission stays unavailable until reference data and edit Product initialization are complete.
+- Added focused service and component coverage, including later-page edit preselection and visible Material selection.
+
 ### File List
 
+- `frontend/src/app/features/categories/category.model.ts`
+- `frontend/src/app/features/categories/category.service.ts`
+- `frontend/src/app/features/categories/category.service.spec.ts`
+- `frontend/src/app/features/products/product-form/product-form.component.ts`
+- `frontend/src/app/features/products/product-form/product-form.component.spec.ts`
+- `task.md`
+- `_bmad-output/implementation-artifacts/1-4-replace-product-category-id-entry-with-a-dropdown.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
