@@ -90,20 +90,20 @@ Phạm vi của tài liệu này chỉ gồm các requirement Week 1 (`REQ-STP-*
 
 **Requirements:** `REQ-STP-F-103`, `REQ-STP-F-104`  
 **Story:** 1.5 — Add the Warehouse list route and navigation  
-**Trạng thái:** `NOT_IMPLEMENTED` / `PARTIALLY_IMPLEMENTED`  
+**Trạng thái:** `COMPLETED`
 **Phụ thuộc:** Warehouse API và Story 1.1.
 
-- [ ] Tạo typed Warehouse model và service dưới `features/warehouses`.
-- [ ] Tạo standalone `WarehouseListComponent` sử dụng Warehouse API có pagination hiện tại.
-- [ ] Hiển thị Name, Code, Address và Status.
-- [ ] Hỗ trợ loading, empty, error và server-side pagination.
-- [ ] Hỗ trợ page size 10, 20 và 50.
-- [ ] Thêm protected lazy route cho Warehouse dưới `MainLayoutComponent`.
-- [ ] Thêm Warehouse link vào sidebar cho các StockPulse role đã đăng nhập.
-- [ ] Không thêm Warehouse create/edit form ngoài phạm vi requirement.
-- [ ] Viết Angular service tests cho pagination và error response.
-- [ ] Viết component tests cho loading, empty, content, error và paginator.
-- [ ] Viết route smoke test.
+- [x] Tạo typed Warehouse model và service dưới `features/warehouses`.
+- [x] Tạo standalone `WarehouseListComponent` sử dụng Warehouse API có pagination hiện tại.
+- [x] Hiển thị Name, Code, Address và Status.
+- [x] Hỗ trợ loading, empty, error và server-side pagination.
+- [x] Hỗ trợ page size 10, 20 và 50.
+- [x] Thêm protected lazy route cho Warehouse dưới `MainLayoutComponent`.
+- [x] Thêm Warehouse link vào sidebar cho các StockPulse role đã đăng nhập.
+- [x] Không thêm Warehouse create/edit form ngoài phạm vi requirement.
+- [x] Viết Angular service tests cho pagination và error response.
+- [x] Viết component tests cho loading, empty, content, error và paginator.
+- [x] Viết route smoke test.
 
 ## 7. Hoàn thiện và xác minh Swagger/OpenAPI
 
