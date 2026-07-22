@@ -1,6 +1,6 @@
 # Story 5.2: Complete and Verify Week 1 StockPulse OpenAPI Documentation
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -52,35 +52,35 @@ Starter Auth and User endpoints may remain in the generated document, but they a
   - [ ] Confirm the generated document includes the 13 in-scope method/path pairs and record any unexpected StockPulse path before proceeding.
   - [ ] Treat controller mappings as the availability authority. Do not add paths directly to `OpenApiConfig` to represent planned endpoints.
   - [ ] Keep Auth/User paths outside the Week 1 allowlist comparison; do not remove or refactor those baseline APIs in this story.
-- [ ] Complete operation, security, and parameter annotations (AC: 1-3, 10)
-  - [ ] Extend the existing `@Operation` annotations in `ProductController`, `CategoryController`, and `WarehouseController` with stable operation IDs, meaningful descriptions, and actual role requirements.
-  - [ ] Add explicit `@SecurityRequirement(name = "Bearer Authentication")` at controller or operation level for the 13 protected operations. Preserve the existing scheme name so annotations and `OpenApiConfig` cannot drift.
-  - [ ] Add `@Parameter`/`@Schema` metadata for `id`, list pagination/sort parameters, and product-search `q`, including defaults, requiredness, examples, and only the constraints enforced by the current code.
-  - [ ] Ensure operation ordering/path matching does not confuse `/products/search` with `/products/{id}` in the generated document.
-- [ ] Complete request and response documentation (AC: 4-6, 10)
-  - [ ] Retain Bean Validation as the source of request-schema required fields and limits; add `@Schema` descriptions/examples only where the generated contract is unclear.
-  - [ ] Document concrete success content for every operation and preserve the actual 201 status on the three create operations.
-  - [ ] Reuse a small annotation pattern or shared documented error schema where it reduces duplication without changing runtime `ApiResponse` serialization.
-  - [ ] Add 400/401/403/404/409 `@ApiResponse` entries according to the operation-specific matrix below.
-  - [ ] Verify generic success schemas resolve to the correct concrete `data` item and that paged results expose both `content` item type and all six page metadata properties.
-- [ ] Add focused generated-JSON assertions (AC: 1-8, 10)
-  - [ ] Create `Week1OpenApiDocumentationTest` under the backend controller/config test area using MockMvc and a focused Spring MVC/SpringDoc context; mock services and unrelated infrastructure rather than requiring PostgreSQL, Redis, or RabbitMQ merely to generate documentation.
-  - [ ] Parse `/v3/api-docs` with the existing Jackson test support and use table-driven assertions for the 13-operation allowlist and per-operation success/error expectations.
-  - [ ] Assert `components.securitySchemes["Bearer Authentication"]` has `type: http`, `scheme: bearer`, and `bearerFormat: JWT`, and every in-scope operation has that security requirement.
-  - [ ] Assert list/search query parameter names, locations, required flags, defaults, enum/minimum values, and request-body requiredness/schema references.
-  - [ ] Resolve `$ref` values in helpers instead of coupling assertions to SpringDoc's generated generic-wrapper component names; still assert the concrete DTO fields and envelope/page structure.
-  - [ ] Add negative path and operation assertions from AC 8 so later annotations cannot accidentally advertise controller methods that do not exist.
+- [x] Complete operation, security, and parameter annotations (AC: 1-3, 10)
+  - [x] Extend the existing `@Operation` annotations in `ProductController`, `CategoryController`, and `WarehouseController` with stable operation IDs, meaningful descriptions, and actual role requirements.
+  - [x] Add explicit `@SecurityRequirement(name = "Bearer Authentication")` at controller or operation level for the 13 protected operations. Preserve the existing scheme name so annotations and `OpenApiConfig` cannot drift.
+  - [x] Add `@Parameter`/`@Schema` metadata for `id`, list pagination/sort parameters, and product-search `q`, including defaults, requiredness, examples, and only the constraints enforced by the current code.
+  - [x] Ensure operation ordering/path matching does not confuse `/products/search` with `/products/{id}` in the generated document.
+- [x] Complete request and response documentation (AC: 4-6, 10)
+  - [x] Retain Bean Validation as the source of request-schema required fields and limits; add `@Schema` descriptions/examples only where the generated contract is unclear.
+  - [x] Document concrete success content for every operation and preserve the actual 201 status on the three create operations.
+  - [x] Reuse a small annotation pattern or shared documented error schema where it reduces duplication without changing runtime `ApiResponse` serialization.
+  - [x] Add 400/401/403/404/409 `@ApiResponse` entries according to the operation-specific matrix below.
+  - [x] Verify generic success schemas resolve to the correct concrete `data` item and that paged results expose both `content` item type and all six page metadata properties.
+- [x] Add focused generated-JSON assertions (AC: 1-8, 10)
+  - [x] Create `Week1OpenApiDocumentationTest` under the backend controller/config test area using MockMvc and a focused Spring MVC/SpringDoc context; mock services and unrelated infrastructure rather than requiring PostgreSQL, Redis, or RabbitMQ merely to generate documentation.
+  - [x] Parse `/v3/api-docs` with the existing Jackson test support and use table-driven assertions for the 13-operation allowlist and per-operation success/error expectations.
+  - [x] Assert `components.securitySchemes["Bearer Authentication"]` has `type: http`, `scheme: bearer`, and `bearerFormat: JWT`, and every in-scope operation has that security requirement.
+  - [x] Assert list/search query parameter names, locations, required flags, defaults, enum/minimum values, and request-body requiredness/schema references.
+  - [x] Resolve `$ref` values in helpers instead of coupling assertions to SpringDoc's generated generic-wrapper component names; still assert the concrete DTO fields and envelope/page structure.
+  - [x] Add negative path and operation assertions from AC 8 so later annotations cannot accidentally advertise controller methods that do not exist.
 - [ ] Perform and record the Swagger UI smoke verification (AC: 9)
   - [ ] Run the backend with its normal OpenAPI settings and open `/swagger-ui.html` (accepting the normal redirect to `/swagger-ui/index.html`).
-  - [ ] Confirm Products shows 5 operations, Categories 4, and Warehouses 4, with the exact methods and paths in this story.
-  - [ ] Expand representative list, detail, create, update, and search operations and check descriptions, roles, parameters, request constraints, success/error responses, and concrete schemas.
+  - [ ] Confirm Products shows 5 operations, Categories 4, and Warehouses 4, with the exact methods and paths in this story. (Verified in generated JSON; interactive browser rendering unavailable.)
+  - [ ] Expand representative list, detail, create, update, and search operations and check descriptions, roles, parameters, request constraints, success/error responses, and concrete schemas. (Verified in generated JSON; interactive browser rendering unavailable.)
   - [ ] Confirm the Authorize dialog accepts a bearer token and protected operations show the bearer security requirement; this is a documentation smoke check, not a replacement for authorization tests.
-  - [ ] Search the rendered UI for the future resource names and paths in AC 8 and record that they are absent.
-  - [ ] Record date, environment/profile, generated-doc URL, UI URL, result, and any limitations in `Swagger UI Smoke Verification` under the Dev Agent Record.
+  - [ ] Search the rendered UI for the future resource names and paths in AC 8 and record that they are absent. (Absence verified in generated JSON; interactive browser rendering unavailable.)
+  - [x] Record date, environment/profile, generated-doc URL, UI URL, result, and any limitations in `Swagger UI Smoke Verification` under the Dev Agent Record.
 - [ ] Run proportional verification (AC: 1-10)
-  - [ ] Run the focused OpenAPI documentation test and the existing affected backend tests.
-  - [ ] Regenerate `/v3/api-docs` after changes and compare the Week 1 operation set with the allowlist.
-  - [ ] Review the final diff to confirm there are no new mappings, future endpoint annotations, runtime behavior changes, or Week 2–4 availability claims.
+  - [ ] Run the focused OpenAPI documentation test and the existing affected backend tests. (Focused and non-container tests pass; the full suite is blocked by unavailable Docker for three existing Testcontainers classes.)
+  - [x] Regenerate `/v3/api-docs` after changes and compare the Week 1 operation set with the allowlist.
+  - [x] Review the final diff to confirm there are no new mappings, future endpoint annotations, runtime behavior changes, or Week 2–4 availability claims.
 
 ## Operation-Specific Response Matrix
 
@@ -167,20 +167,46 @@ Explicitly do not add or annotate mappings for StockLevel, StockMovement, Alert,
 
 ### Agent Model Used
 
+Codex (GPT-5)
+
 ### Debug Log References
+
+- `backend/mvnw.cmd -Dtest=Week1OpenApiDocumentationTest test` — PASS, 6 focused tests.
+- `backend/mvnw.cmd test` — executed against final code: 54 tests, 0 failures, 3 environment errors because Docker/Testcontainers is unavailable.
+- HTTP smoke against focused context on port 8080 — `/swagger-ui.html` 302 to `/swagger-ui/index.html`; UI shell, initializer, and `/v3/api-docs` returned 200.
 
 ### Completion Notes List
 
+- Documented exactly the 13 implemented Product, Category, and Warehouse operations; no mappings or runtime behavior changed.
+- Added stable operation IDs, actual role text, bearer security, pagination/search metadata, immutable-field descriptions, concrete envelope/page schemas, and the operation-specific error matrix.
+- Added table-driven generated-JSON assertions for allowlisted operations, tags, unique operation IDs, security, parameters, request validation, response codes/schemas, and future/delete exclusions.
+- Full backend suite was run before task status updates. All non-container tests passed; `FlywayMigrationIntegrationTest`, `ProductSearchIntegrationTest`, and `CatalogWarehouseAuthorizationIntegrationTest` could not start because no Docker environment is installed.
+
 ### Swagger UI Smoke Verification
 
-- Date/time:
-- Environment/profile:
-- OpenAPI JSON URL:
-- Swagger UI URL:
-- Week 1 operation count and result:
-- Security/parameter/schema result:
-- Future-path absence result:
-- Overall result:
-- Notes/limitations:
+- Date/time: 2026-07-22 09:48 ICT (UTC+07:00)
+- Environment/profile: Focused Spring Boot/SpringDoc context, default OpenAPI settings, mocked domain services, external infrastructure excluded
+- OpenAPI JSON URL: `http://localhost:8080/v3/api-docs`
+- Swagger UI URL: `http://localhost:8080/swagger-ui.html` (302 to `/swagger-ui/index.html`)
+- Week 1 operation count and result: PASS — 13 operations across 7 path entries; Products 5, Categories 4, Warehouses 4
+- Security/parameter/schema result: PASS — bearer/JWT scheme, operation security, role descriptions, defaults/constraints, request models, success/error envelopes, and concrete page/item schemas verified by generated JSON assertions
+- Future-path absence result: PASS — no Product/Category/Warehouse DELETE and no stock, movement, alert, reorder-suggestion, dashboard, or reporting path
+- Overall result: PARTIAL — HTTP UI shell/initializer and generated contract passed; interactive visual browser check was unavailable
+- Notes/limitations: No browser backend was available in the execution environment, so the Authorize dialog and expanded panels were not visually clicked. Their underlying bearer security and rendered source contract were verified automatically. Docker was also unavailable, preventing the three existing Testcontainers integration classes from starting.
 
 ### File List
+
+- `backend/src/main/java/com/training/starter/config/OpenApiConfig.java`
+- `backend/src/main/java/com/training/starter/config/OpenApiSchemas.java`
+- `backend/src/main/java/com/training/starter/controller/ProductController.java`
+- `backend/src/main/java/com/training/starter/controller/CategoryController.java`
+- `backend/src/main/java/com/training/starter/controller/WarehouseController.java`
+- `backend/src/main/java/com/training/starter/dto/request/CreateProductRequest.java`
+- `backend/src/main/java/com/training/starter/dto/request/UpdateProductRequest.java`
+- `backend/src/main/java/com/training/starter/dto/request/CreateCategoryRequest.java`
+- `backend/src/main/java/com/training/starter/dto/request/UpdateCategoryRequest.java`
+- `backend/src/main/java/com/training/starter/dto/request/CreateWarehouseRequest.java`
+- `backend/src/main/java/com/training/starter/dto/request/UpdateWarehouseRequest.java`
+- `backend/src/test/java/com/training/starter/controller/Week1OpenApiDocumentationTest.java`
+- `task.md`
+- `_bmad-output/implementation-artifacts/5-2-complete-and-verify-stockpulse-openapi-documentation.md`

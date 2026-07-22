@@ -17,7 +17,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Training Starter API")
                         .version("1.0")
-                        .description("Training starter codebase API — Auth + User CRUD reference"))
+                        .description("StockPulse API — implemented catalog and warehouse operations, plus starter Auth and User reference APIs"))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",

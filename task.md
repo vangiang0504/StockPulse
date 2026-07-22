@@ -112,14 +112,14 @@ Phạm vi của tài liệu này chỉ gồm các requirement Week 1 (`REQ-STP-*
 **Trạng thái:** `PARTIALLY_IMPLEMENTED`  
 **Phụ thuộc:** Các endpoint Week 1 liên quan phải hoàn thành trước.
 
-- [ ] Bổ sung OpenAPI annotations còn thiếu cho các endpoint StockPulse Week 1.
-- [ ] Mô tả request constraints, roles/security, pagination và filter parameters.
-- [ ] Mô tả success envelope và các response 400/401/403/404/409 phù hợp.
+- [x] Bổ sung OpenAPI annotations còn thiếu cho các endpoint StockPulse Week 1.
+- [x] Mô tả request constraints, roles/security, pagination và filter parameters.
+- [x] Mô tả success envelope và các response 400/401/403/404/409 phù hợp.
 - [ ] Kiểm tra Swagger UI hiển thị đúng method, path và schema của các endpoint đã triển khai.
-- [ ] Không document endpoint chưa tồn tại như một endpoint khả dụng.
-- [ ] Tạo checklist xác minh lặp lại được hoặc automated OpenAPI assertions.
-- [ ] Viết OpenAPI JSON assertions cho paths, operations, security và schemas.
-- [ ] Ghi lại kết quả Swagger UI smoke verification.
+- [x] Không document endpoint chưa tồn tại như một endpoint khả dụng.
+- [x] Tạo checklist xác minh lặp lại được hoặc automated OpenAPI assertions.
+- [x] Viết OpenAPI JSON assertions cho paths, operations, security và schemas.
+- [x] Ghi lại kết quả Swagger UI smoke verification.
 
 ## Requirements đã hoàn thành — không tạo lại
 
