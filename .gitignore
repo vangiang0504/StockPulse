@@ -1,5 +1,19 @@
 # --- Claude Code ---
-.claude/
+# Ignore only machine-local, personal settings. launch.json is shared.
+.claude/settings.local.json
+
+# --- BMAD generated skills ---
+# Generated from _bmad/ (version pinned in _bmad/_config/manifest.yaml), so they are
+# rebuilt rather than committed. Each developer runs the installer once for their tool:
+#   npx bmad-method install --modules bmm --tools claude-code   (Claude Code)
+#   npx bmad-method install --modules bmm --tools codex         (Codex)
+.claude/skills/
+.agents/skills/
+
+# Per-developer BMAD install answers (user_name, skill level).
+# BMAD's own convention is that *.user.toml is personal, but it only
+# auto-ignores the copy under _bmad/custom/.
+_bmad/**/*.user.toml
 
 # --- Maven / Java build output ---
 target/
