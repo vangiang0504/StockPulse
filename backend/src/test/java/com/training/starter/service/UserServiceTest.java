@@ -156,7 +156,7 @@ class UserServiceTest {
                 .email(email)
                 .password("encoded")
                 .fullName("Test User")
-                .role(Role.USER)
+                .role(Role.STAFF)
                 .active(true)
                 .build();
         user.setId(id);

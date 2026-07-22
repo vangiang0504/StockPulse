@@ -4,6 +4,8 @@ export interface ProductSummary {
   name: string;
   categoryId: number;
   unit: string;
+  minStock: number;
+  reorderPoint: number;
   active: boolean;
   createdAt: string;
 }

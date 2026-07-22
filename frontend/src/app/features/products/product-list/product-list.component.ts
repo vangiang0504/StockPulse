@@ -53,6 +53,16 @@ import { NotificationService } from '../../../core/services/notification.service
           <td mat-cell *matCellDef="let product">{{ product.unit }}</td>
         </ng-container>
 
+        <ng-container matColumnDef="minStock">
+          <th mat-header-cell *matHeaderCellDef>Min Stock</th>
+          <td mat-cell *matCellDef="let product">{{ product.minStock }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="reorderPoint">
+          <th mat-header-cell *matHeaderCellDef>Reorder Point</th>
+          <td mat-cell *matCellDef="let product">{{ product.reorderPoint }}</td>
+        </ng-container>
+
         <ng-container matColumnDef="active">
           <th mat-header-cell *matHeaderCellDef>Status</th>
           <td mat-cell *matCellDef="let product">
@@ -78,7 +88,7 @@ import { NotificationService } from '../../../core/services/notification.service
 })
 export class ProductListComponent implements OnInit {
   products: ProductSummary[] = [];
-  displayedColumns = ['sku', 'name', 'categoryId', 'unit', 'active', 'actions'];
+  displayedColumns = ['sku', 'name', 'categoryId', 'unit', 'minStock', 'reorderPoint', 'active', 'actions'];
   totalElements = 0;
   pageSize = 20;
   currentPage = 0;

@@ -8,6 +8,8 @@ public record ProductSummaryResponse(
         String name,
         Long categoryId,
         String unit,
+        Integer minStock,
+        Integer reorderPoint,
         Boolean active,
         LocalDateTime createdAt
 ) {}
