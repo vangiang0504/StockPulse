@@ -12,6 +12,7 @@ import { NotificationService } from '../../../core/services/notification.service
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, MatFormFieldModule, MatInputModule, MatButtonModule],
   template: `
+    <h3 class="auth-heading">Create account</h3>
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <mat-form-field class="full-width">
         <mat-label>Username</mat-label>

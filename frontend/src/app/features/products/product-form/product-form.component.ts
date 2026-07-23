@@ -17,9 +17,15 @@ import { NotificationService } from '../../../core/services/notification.service
   standalone: true,
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSlideToggleModule, MatSelectModule],
   template: `
-    <h2>{{ isEdit ? 'Edit Product' : 'Create Product' }}</h2>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" style="max-width: 500px;">
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h2>{{ isEdit ? 'Edit Product' : 'Create Product' }}</h2>
+          <p class="page-subtitle">Catalog item details</p>
+        </div>
+      </div>
+      <div class="surface-card pad form-card">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <mat-form-field class="full-width">
         <mat-label>SKU</mat-label>
         <input matInput formControlName="sku">
@@ -88,7 +94,14 @@ import { NotificationService } from '../../../core/services/notification.service
         <button mat-button type="button" (click)="onCancel()">Cancel</button>
       </div>
     </form>
-  `
+      </div>
+    </div>
+  `,
+  styles: [`
+    .form-card { max-width: 560px; }
+    .category-state { font-size: 12px; margin: -8px 0 12px; color: var(--sp-text-muted); }
+    .category-error { color: #ef4444; }
+  `]
 })
 export class ProductFormComponent implements OnInit {
   isEdit = false;

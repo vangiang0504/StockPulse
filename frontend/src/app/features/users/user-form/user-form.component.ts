@@ -13,9 +13,15 @@ import { NotificationService } from '../../../core/services/notification.service
   standalone: true,
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSlideToggleModule],
   template: `
-    <h2>{{ isEdit ? 'Edit User' : 'Create User' }}</h2>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" style="max-width: 500px;">
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h2>{{ isEdit ? 'Edit User' : 'Create User' }}</h2>
+          <p class="page-subtitle">Account details</p>
+        </div>
+      </div>
+      <div class="surface-card pad form-card">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <mat-form-field class="full-width">
         <mat-label>Username</mat-label>
         <input matInput formControlName="username">
@@ -49,7 +55,12 @@ import { NotificationService } from '../../../core/services/notification.service
         <button mat-button type="button" (click)="onCancel()">Cancel</button>
       </div>
     </form>
-  `
+      </div>
+    </div>
+  `,
+  styles: [`
+    .form-card { max-width: 560px; }
+  `]
 })
 export class UserFormComponent implements OnInit {
   isEdit = false;

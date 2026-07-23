@@ -1,31 +1,233 @@
+/* ============================================================
+   StockPulse design system
+   Re-skins Angular Material to match the "Warehouse Management
+   System Design" reference: navy chrome, white cards, blue-600
+   accents, Inter + JetBrains Mono. Component logic is untouched;
+   everything here is presentation only.
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --sp-bg: #eef0f4;
+  --sp-surface: #ffffff;
+  --sp-surface-muted: #f9fafb;
+  --sp-border: #e5e7eb;
+  --sp-border-soft: #f1f5f9;
+
+  /* Text */
+  --sp-text: #111827;
+  --sp-text-soft: #374151;
+  --sp-text-muted: #6b7280;
+  --sp-text-faint: #9ca3af;
+
+  /* Brand / primary */
+  --sp-primary: #2563eb;
+  --sp-primary-hover: #1d4ed8;
+  --sp-primary-50: #eff6ff;
+  --sp-primary-100: #dbeafe;
+  --sp-primary-700: #1d4ed8;
+
+  /* Navy sidebar */
+  --sp-navy-900: #0d1b3e;
+  --sp-navy-700: #1d3166;
+  --sp-navy-accent: #60a5fa;
+  --sp-navy-muted: #7b9dc4;
+  --sp-navy-label: #3d5a8a;
+
+  /* Status */
+  --sp-ok: #16a34a;
+  --sp-ok-bg: #dcfce7;
+  --sp-low: #ea580c;
+  --sp-low-bg: #ffedd5;
+  --sp-over: #ca8a04;
+  --sp-over-bg: #fef9c3;
+  --sp-out: #dc2626;
+  --sp-out-bg: #fee2e2;
+
+  --sp-radius: 12px;
+  --sp-radius-sm: 8px;
+  --sp-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.05);
+  --sp-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+}
+
 html, body {
   height: 100%;
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  background-color: var(--sp-bg);
+  color: var(--sp-text);
+  -webkit-font-smoothing: antialiased;
 }
 
-.container {
-  padding: 24px;
+/* ---- Slim scrollbars, matching the reference ---- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ============================================================
+   Layout helpers (used by feature pages)
+   ============================================================ */
+.container { padding: 24px; }
+.full-width { width: 100%; }
+.spacer { flex: 1 1 auto; }
+
+/* Page scaffold: a titled header row + one or more white cards */
+.page { padding: 24px; }
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.page-head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--sp-text);
+}
+.page-head .page-subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--sp-text-faint);
 }
 
-.full-width {
-  width: 100%;
+.surface-card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow-sm);
+  overflow: hidden;
 }
+.surface-card.pad { padding: 24px; }
 
-.spacer {
-  flex: 1 1 auto;
-}
-
-.error-message {
-  color: #f44336;
+/* ---- Inline chips rendered inside tables ---- */
+.sku-chip {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  margin-top: 4px;
+  background: #f3f4f6;
+  color: var(--sp-text-soft);
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.category-pill {
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--sp-primary-50);
+  color: var(--sp-primary-700);
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+/* ---- Empty / loading / error states ---- */
+.error-message { color: #ef4444; font-size: 12px; margin-top: 4px; }
+
+/* ---- Auth screens ---- */
+.auth-heading {
+  margin: 0 0 18px; text-align: center; font-size: 16px; font-weight: 600; color: var(--sp-text-soft);
 }
 
+/* ============================================================
+   Angular Material overrides
+   ============================================================ */
+
+/* ---- Buttons ---- */
+.mat-mdc-raised-button.mat-primary,
+a.mat-mdc-raised-button.mat-primary {
+  --mdc-protected-button-container-color: var(--sp-primary);
+  background-color: var(--sp-primary);
+  color: #fff;
+  border-radius: var(--sp-radius-sm);
+  box-shadow: var(--sp-shadow-sm);
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.mat-mdc-raised-button.mat-primary:hover,
+a.mat-mdc-raised-button.mat-primary:hover {
+  background-color: var(--sp-primary-hover);
+}
+.mat-mdc-button, .mat-mdc-raised-button { letter-spacing: 0; }
+
+/* ---- Cards ---- */
+.mat-mdc-card {
+  border-radius: var(--sp-radius);
+  border: 1px solid var(--sp-border);
+  box-shadow: var(--sp-shadow-sm) !important;
+}
+
+/* ---- Tables ---- */
+table.mat-mdc-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--sp-surface);
+}
+.mat-mdc-header-row {
+  background: var(--sp-surface-muted);
+  min-height: 44px;
+}
+.mat-mdc-header-cell {
+  color: var(--sp-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--sp-border);
+}
+.mat-mdc-cell {
+  color: var(--sp-text-soft);
+  font-size: 14px;
+  border-bottom: 1px solid var(--sp-border-soft);
+}
+.mat-mdc-row { transition: background-color 0.12s ease; }
+.mat-mdc-row:hover { background: var(--sp-surface-muted); }
+.mat-mdc-header-cell:first-of-type,
+.mat-mdc-cell:first-of-type { padding-left: 20px; }
+.mat-mdc-header-cell:last-of-type,
+.mat-mdc-cell:last-of-type { padding-right: 20px; }
+
+/* ---- Status chips (mat-chip [highlighted]) ---- */
+.mat-mdc-standard-chip {
+  --mdc-chip-container-height: 24px;
+  border-radius: 999px !important;
+  font-size: 11px;
+  font-weight: 700;
+}
+.mat-mdc-standard-chip .mdc-evolution-chip__text-label {
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+/* Inactive = neutral pill */
+.mat-mdc-standard-chip:not(.mat-mdc-chip-highlighted) {
+  --mdc-chip-elevated-container-color: #f3f4f6;
+  --mdc-chip-label-text-color: var(--sp-text-muted);
+}
+/* Active = green pill */
+.mat-mdc-standard-chip.mat-mdc-chip-highlighted {
+  --mdc-chip-elevated-container-color: var(--sp-ok-bg);
+  --mdc-chip-label-text-color: #15803d;
+}
+
+/* ---- Paginator ---- */
+.mat-mdc-paginator {
+  background: transparent;
+  color: var(--sp-text-muted);
+  font-size: 13px;
+}
+
+/* ---- Form fields ---- */
+.mat-mdc-form-field { width: 100%; }
+
+/* ---- Snackbars ---- */
 .mat-mdc-snack-bar-container.success-snackbar .mdc-snackbar__surface {
-  background-color: #4caf50;
+  background-color: #16a34a;
 }
-
 .mat-mdc-snack-bar-container.error-snackbar .mdc-snackbar__surface {
-  background-color: #f44336;
+  background-color: #ef4444;
 }
