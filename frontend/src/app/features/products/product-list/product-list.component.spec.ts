@@ -8,6 +8,9 @@ import { PageResponse } from '../../../core/models/page-response.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ProductSummary } from '../product.model';
 import { ProductService } from '../product.service';
+import { CategoryService } from '../../categories/category.service';
+import { Category } from '../../categories/category.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { ProductListComponent } from './product-list.component';
 
 describe('ProductListComponent', () => {
@@ -15,6 +18,8 @@ describe('ProductListComponent', () => {
   let component: ProductListComponent;
   let productService: jasmine.SpyObj<ProductService>;
   let notification: jasmine.SpyObj<NotificationService>;
+  let categoryService: jasmine.SpyObj<CategoryService>;
+  let authService: jasmine.SpyObj<AuthService>;
 
   const product: ProductSummary = {
     id: 1,
@@ -31,14 +36,20 @@ describe('ProductListComponent', () => {
   beforeEach(async () => {
     productService = jasmine.createSpyObj<ProductService>('ProductService', ['getProducts']);
     notification = jasmine.createSpyObj<NotificationService>('NotificationService', ['error']);
+    categoryService = jasmine.createSpyObj<CategoryService>('CategoryService', ['getCategories']);
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['getRole']);
     productService.getProducts.and.returnValue(of(pageResponse([product])));
+    categoryService.getCategories.and.returnValue(of(categoryPage()));
+    authService.getRole.and.returnValue('ADMIN');
 
     await TestBed.configureTestingModule({
       imports: [ProductListComponent, NoopAnimationsModule],
       providers: [
         provideRouter([]),
         { provide: ProductService, useValue: productService },
-        { provide: NotificationService, useValue: notification }
+        { provide: NotificationService, useValue: notification },
+        { provide: CategoryService, useValue: categoryService },
+        { provide: AuthService, useValue: authService }
       ]
     }).compileComponents();
 
@@ -107,6 +118,15 @@ describe('ProductListComponent', () => {
         totalPages: content.length ? 1 : 0,
         last: true
       }
+    };
+  }
+
+  function categoryPage(): ApiResponse<PageResponse<Category>> {
+    return {
+      success: true,
+      message: 'OK',
+      timestamp: '2026-07-21T00:00:00',
+      data: { content: [], page: 0, size: 50, totalElements: 0, totalPages: 0, last: true }
     };
   }
 });
