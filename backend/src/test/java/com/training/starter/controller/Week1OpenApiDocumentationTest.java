@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.training.starter.config.OpenApiConfig;
 import com.training.starter.service.CategoryService;
 import com.training.starter.service.ProductService;
+import com.training.starter.service.StockLevelService;
 import com.training.starter.service.WarehouseService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class Week1OpenApiDocumentationTest {
 
     private static final String BEARER_SCHEME = "Bearer Authentication";
     private static final Set<String> STOCKPULSE_PREFIXES = Set.of(
-            "/api/v1/products", "/api/v1/categories", "/api/v1/warehouses");
+            "/api/v1/products", "/api/v1/categories", "/api/v1/warehouses", "/api/v1/stock");
 
     private static final Map<OperationKey, ExpectedOperation> EXPECTED_OPERATIONS = expectedOperations();
 
@@ -68,6 +69,9 @@ class Week1OpenApiDocumentationTest {
     @MockBean
     private WarehouseService warehouseService;
 
+    @MockBean
+    private StockLevelService stockLevelService;
+
     private static JsonNode document;
 
     @BeforeAll
@@ -80,7 +84,7 @@ class Week1OpenApiDocumentationTest {
         JsonNode api = document();
 
         assertThat(actualStockPulseOperations(api)).containsExactlyInAnyOrderElementsOf(EXPECTED_OPERATIONS.keySet());
-        assertThat(tagNames(api)).contains("Products", "Categories", "Warehouses");
+        assertThat(tagNames(api)).contains("Products", "Categories", "Warehouses", "Stock");
 
         Set<String> operationIds = new HashSet<>();
         EXPECTED_OPERATIONS.forEach((key, expected) -> {
@@ -112,12 +116,21 @@ class Week1OpenApiDocumentationTest {
                 new OperationKey("/api/v1/products", "get"),
                 new OperationKey("/api/v1/categories", "get"),
                 new OperationKey("/api/v1/warehouses", "get"),
+                new OperationKey("/api/v1/stock", "get"),
+                new OperationKey("/api/v1/stock/low", "get"),
+                new OperationKey("/api/v1/stock/summary", "get"),
                 new OperationKey("/api/v1/products/search", "get"))) {
             Map<String, JsonNode> parameters = parameters(operation(api, key));
             assertThat(parameters.keySet()).contains("page", "size", "sortBy", "sortDir");
             assertParameter(parameters.get("page"), "query", false, "0", "0");
             assertParameter(parameters.get("size"), "query", false, "20", "1");
-            assertThat(parameters.get("sortBy").path("schema").path("default").asText()).isEqualTo("createdAt");
+            String expectedSort = key.path().equals("/api/v1/stock/summary")
+                    ? "productId"
+                    : key.path().startsWith("/api/v1/stock")
+                            ? "updatedAt"
+                            : "createdAt";
+            assertThat(parameters.get("sortBy").path("schema").path("default").asText())
+                    .isEqualTo(expectedSort);
             assertThat(parameters.get("sortDir").path("schema").path("default").asText()).isEqualTo("DESC");
             assertThat(textValues(parameters.get("sortDir").path("schema").path("enum")))
                     .containsExactly("ASC", "DESC");
@@ -130,6 +143,44 @@ class Week1OpenApiDocumentationTest {
         assertThat(searchParameters.get("q").path("schema").path("minLength").asInt()).isEqualTo(1);
         assertThat(textValues(searchParameters.get("sortBy").path("schema").path("enum")))
                 .contains("id", "sku", "name", "categoryId", "createdAt", "updatedAt");
+
+        Map<String, JsonNode> stockParameters = parameters(
+                operation(api, new OperationKey("/api/v1/stock", "get")));
+        assertThat(stockParameters.keySet()).containsExactlyInAnyOrder(
+                "warehouseId", "productId", "page", "size", "sortBy", "sortDir");
+        assertThat(stockParameters.get("warehouseId").path("required").asBoolean()).isFalse();
+        assertThat(stockParameters.get("productId").path("required").asBoolean()).isFalse();
+        assertThat(stockParameters.get("size").path("schema").path("maximum").asInt()).isEqualTo(100);
+        assertThat(textValues(stockParameters.get("sortBy").path("schema").path("enum")))
+                .containsExactlyInAnyOrder(
+                        "id", "productId", "warehouseId", "quantity",
+                        "reservedQuantity", "version", "updatedAt");
+
+        Map<String, JsonNode> lowStockParameters = parameters(
+                operation(api, new OperationKey("/api/v1/stock/low", "get")));
+        assertThat(lowStockParameters.keySet()).containsExactlyInAnyOrder(
+                "warehouseId", "page", "size", "sortBy", "sortDir");
+        assertThat(lowStockParameters.get("warehouseId").path("required").asBoolean()).isFalse();
+        assertThat(lowStockParameters.get("size").path("schema").path("maximum").asInt())
+                .isEqualTo(100);
+        assertThat(textValues(lowStockParameters.get("sortBy").path("schema").path("enum")))
+                .containsExactlyInAnyOrder(
+                        "id", "productId", "warehouseId", "quantity",
+                        "reservedQuantity", "version", "updatedAt");
+
+        Map<String, JsonNode> summaryParameters = parameters(
+                operation(api, new OperationKey("/api/v1/stock/summary", "get")));
+        assertThat(summaryParameters.keySet()).containsExactlyInAnyOrder(
+                "warehouseId", "productId", "page", "size", "sortBy", "sortDir");
+        assertThat(summaryParameters.get("warehouseId").path("required").asBoolean()).isFalse();
+        assertThat(summaryParameters.get("productId").path("required").asBoolean()).isFalse();
+        assertThat(summaryParameters.get("size").path("schema").path("maximum").asInt())
+                .isEqualTo(100);
+        assertThat(textValues(summaryParameters.get("sortBy").path("schema").path("enum")))
+                .containsExactlyInAnyOrder(
+                        "productId", "sku", "productName", "categoryName",
+                        "warehouseId", "warehouseName", "quantity", "reservedQuantity",
+                        "availableQuantity", "minStock", "reorderPoint", "stockStatus");
     }
 
     @Test
@@ -176,6 +227,18 @@ class Week1OpenApiDocumentationTest {
                 "id", "sku", "name", "categoryId", "unit", "minStock", "reorderPoint", "active", "createdAt"));
         assertPagedSuccess(api, "/api/v1/categories", "get", Set.of("id", "name", "code", "parentId", "createdAt"));
         assertPagedSuccess(api, "/api/v1/warehouses", "get", Set.of("id", "name", "code", "address", "active", "createdAt"));
+        assertPagedSuccess(api, "/api/v1/stock", "get", Set.of(
+                "id", "productId", "productSku", "productName", "warehouseId", "warehouseCode",
+                "warehouseName", "quantity", "reservedQuantity", "availableQuantity", "reorderPoint",
+                "version", "updatedAt"));
+        assertPagedSuccess(api, "/api/v1/stock/low", "get", Set.of(
+                "id", "productId", "productSku", "productName", "warehouseId", "warehouseCode",
+                "warehouseName", "quantity", "reservedQuantity", "availableQuantity", "reorderPoint",
+                "version", "updatedAt"));
+        assertPagedSuccess(api, "/api/v1/stock/summary", "get", Set.of(
+                "productId", "sku", "productName", "categoryName", "warehouseId",
+                "warehouseName", "quantity", "reservedQuantity", "availableQuantity",
+                "minStock", "reorderPoint", "stockStatus"));
 
         assertSingleSuccess(api, "/api/v1/products/{id}", "get", "200", Set.of(
                 "id", "sku", "name", "description", "categoryId", "unit", "minStock", "maxStock",
@@ -221,7 +284,7 @@ class Week1OpenApiDocumentationTest {
         }
 
         List<String> forbiddenFragments = List.of(
-                "/api/v1/stock", "/api/v1/movements", "/api/v1/alerts", "/api/v1/reorder-suggestions",
+                "/api/v1/movements", "/api/v1/alerts", "/api/v1/reorder-suggestions",
                 "/dashboard", "/report", "/reports");
         pathNames(api).forEach(path -> forbiddenFragments.forEach(fragment ->
                 assertThat(path).doesNotStartWith(fragment)));
@@ -333,6 +396,9 @@ class Week1OpenApiDocumentationTest {
         if (path.startsWith("/api/v1/categories")) {
             return "Categories";
         }
+        if (path.startsWith("/api/v1/stock")) {
+            return "Stock";
+        }
         return "Warehouses";
     }
 
@@ -416,6 +482,12 @@ class Week1OpenApiDocumentationTest {
         add(operations, "/api/v1/warehouses/{id}", "get", "getWarehouse", "200", "STAFF, MANAGER, or ADMIN", "401", "403", "404");
         add(operations, "/api/v1/warehouses", "post", "createWarehouse", "201", "ADMIN only", "400", "401", "403", "409");
         add(operations, "/api/v1/warehouses/{id}", "put", "updateWarehouse", "200", "ADMIN only", "400", "401", "403", "404");
+        add(operations, "/api/v1/stock", "get", "listStockLevels", "200",
+                "STAFF, MANAGER, or ADMIN", "400", "401", "403");
+        add(operations, "/api/v1/stock/low", "get", "listLowStockLevels", "200",
+                "STAFF, MANAGER, or ADMIN", "400", "401", "403");
+        add(operations, "/api/v1/stock/summary", "get", "listStockSummary", "200",
+                "STAFF, MANAGER, or ADMIN", "400", "401", "403");
         return operations;
     }
 
@@ -450,7 +522,13 @@ class Week1OpenApiDocumentationTest {
             SecurityAutoConfiguration.class,
             UserDetailsServiceAutoConfiguration.class
     })
-    @Import({OpenApiConfig.class, ProductController.class, CategoryController.class, WarehouseController.class})
+    @Import({
+            OpenApiConfig.class,
+            ProductController.class,
+            CategoryController.class,
+            WarehouseController.class,
+            StockController.class
+    })
     public static class TestApplication {
 
         public static void main(String[] args) {
@@ -470,6 +548,11 @@ class Week1OpenApiDocumentationTest {
         @Bean
         WarehouseService warehouseService() {
             return org.mockito.Mockito.mock(WarehouseService.class);
+        }
+
+        @Bean
+        StockLevelService stockLevelService() {
+            return org.mockito.Mockito.mock(StockLevelService.class);
         }
     }
 }
