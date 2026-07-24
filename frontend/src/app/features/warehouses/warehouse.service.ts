@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { PageResponse } from '../../core/models/page-response.model';
-import { Warehouse } from './warehouse.model';
+import { Warehouse, CreateWarehouseRequest, UpdateWarehouseRequest } from './warehouse.model';
 
 @Injectable({ providedIn: 'root' })
 export class WarehouseService {
@@ -25,5 +25,17 @@ export class WarehouseService {
       .set('sortDir', sortDir);
 
     return this.http.get<ApiResponse<PageResponse<Warehouse>>>(this.apiUrl, { params });
+  }
+
+  getWarehouseById(id: number): Observable<ApiResponse<Warehouse>> {
+    return this.http.get<ApiResponse<Warehouse>>(`${this.apiUrl}/${id}`);
+  }
+
+  createWarehouse(request: CreateWarehouseRequest): Observable<ApiResponse<Warehouse>> {
+    return this.http.post<ApiResponse<Warehouse>>(this.apiUrl, request);
+  }
+
+  updateWarehouse(id: number, request: UpdateWarehouseRequest): Observable<ApiResponse<Warehouse>> {
+    return this.http.put<ApiResponse<Warehouse>>(`${this.apiUrl}/${id}`, request);
   }
 }
