@@ -3,6 +3,7 @@ package com.training.starter.config;
 import com.training.starter.common.ApiResponse;
 import com.training.starter.common.PageResponse;
 import com.training.starter.dto.response.CategoryResponse;
+import com.training.starter.dto.response.MovementResponse;
 import com.training.starter.dto.response.ProductResponse;
 import com.training.starter.dto.response.ProductSummaryResponse;
 import com.training.starter.dto.response.StockLevelResponse;
@@ -54,6 +55,15 @@ public final class OpenApiSchemas {
     @Schema(name = "StockSummaryPageResponseEnvelope")
     public static class StockSummaryPageResponseEnvelope
             extends ApiResponse<PageResponse<StockSummaryResponse>> {
+    }
+
+    @Schema(name = "MovementResponseEnvelope")
+    public static class MovementResponseEnvelope extends ApiResponse<MovementResponse> {
+    }
+
+    @Schema(name = "MovementPageResponseEnvelope")
+    public static class MovementPageResponseEnvelope
+            extends ApiResponse<PageResponse<MovementResponse>> {
     }
 
     @Schema(name = "ErrorResponseEnvelope", description = "Standard StockPulse error response")

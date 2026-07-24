@@ -4,11 +4,13 @@ import com.training.starter.dto.request.CreateExportRequest;
 import com.training.starter.dto.request.CreateImportRequest;
 import com.training.starter.dto.request.CreateTransferRequest;
 import com.training.starter.dto.response.MovementResponse;
+import com.training.starter.enums.MovementStatus;
+import com.training.starter.enums.MovementType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
- * Creation and inspection of stock movements (REQ-STP-B-202). Creating or inspecting a movement
- * never mutates {@code stock_levels}; approval, completion, and the stock mutation itself are
- * handled by later stories.
+ * Creation, inspection, and lifecycle operations for stock movements.
  */
 public interface StockMovementService {
 
@@ -19,4 +21,14 @@ public interface StockMovementService {
     MovementResponse createTransfer(CreateTransferRequest request);
 
     MovementResponse getById(Long id);
+
+    Page<MovementResponse> getAll(
+            MovementType type,
+            MovementStatus status,
+            Long warehouseId,
+            Pageable pageable);
+
+    MovementResponse approve(Long id);
+
+    MovementResponse completeMovement(Long id);
 }

@@ -12,6 +12,7 @@ import com.training.starter.repository.ProductRepository;
 import com.training.starter.repository.StockLevelRepository;
 import com.training.starter.repository.StockSummaryRepository;
 import com.training.starter.repository.WarehouseRepository;
+import com.training.starter.service.StockCacheService;
 import com.training.starter.service.StockLevelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class StockLevelServiceImpl implements StockLevelService {
     private final WarehouseRepository warehouseRepository;
     private final StockLevelMapper stockLevelMapper;
     private final StockSummaryMapper stockSummaryMapper;
+    private final StockCacheService stockCacheService;
 
     @Override
     @Transactional(readOnly = true)
@@ -39,6 +41,15 @@ public class StockLevelServiceImpl implements StockLevelService {
                 "Fetching stock level by warehouse id: {} and product id: {}",
                 warehouseId,
                 productId);
+
+        var cached = stockCacheService.get(warehouseId, productId);
+        if (cached.isPresent()) {
+            log.debug(
+                    "Stock cache hit for warehouse id: {} and product id: {}",
+                    warehouseId,
+                    productId);
+            return cached.get();
+        }
 
         StockLevel stockLevel = stockLevelRepository
                 .findByWarehouseIdAndProductId(warehouseId, productId)
@@ -52,7 +63,10 @@ public class StockLevelServiceImpl implements StockLevelService {
         Warehouse warehouse = warehouseRepository.findById(warehouseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Warehouse", warehouseId));
 
-        return stockLevelMapper.toResponse(stockLevel, product, warehouse);
+        StockLevelResponse response =
+                stockLevelMapper.toResponse(stockLevel, product, warehouse);
+        stockCacheService.put(warehouseId, productId, response);
+        return response;
     }
 
     @Override

@@ -30,6 +30,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -54,6 +58,9 @@ class StockLevelServiceTest {
 
     @Mock
     private StockSummaryMapper stockSummaryMapper;
+
+    @Mock
+    private StockCacheService stockCacheService;
 
     @Mock
     private StockLevelProjection stockLevelProjection;
@@ -116,6 +123,72 @@ class StockLevelServiceTest {
         assertThat(result.warehouseCode()).isEqualTo("WH-022");
         assertThat(result.availableQuantity()).isEqualTo(33);
         verify(stockLevelMapper).toResponse(stockLevel, product, warehouse);
+        verify(stockCacheService).put(22L, 11L, response);
+    }
+
+    @Test
+    void getByWarehouseAndProduct_cacheHit_avoidsDatabaseAndMapper() {
+        // Given
+        StockLevelResponse cachedResponse = buildResponse();
+        when(stockCacheService.get(22L, 11L))
+                .thenReturn(Optional.of(cachedResponse));
+
+        // When
+        StockLevelResponse result =
+                stockLevelService.getByWarehouseAndProduct(22L, 11L);
+
+        // Then
+        assertThat(result).isSameAs(cachedResponse);
+        verifyNoInteractions(
+                stockLevelRepository,
+                productRepository,
+                warehouseRepository,
+                stockLevelMapper);
+        verify(stockCacheService, never()).put(22L, 11L, cachedResponse);
+    }
+
+    @Test
+    void getByWarehouseAndProduct_secondQueryUsesCacheAfterFirstQuery() {
+        // Given
+        StockLevel stockLevel = StockLevel.builder()
+                .productId(11L)
+                .warehouseId(22L)
+                .quantity(40)
+                .reservedQuantity(7)
+                .build();
+        Product product = Product.builder()
+                .sku("SKU-011")
+                .name("Product")
+                .build();
+        Warehouse warehouse = Warehouse.builder()
+                .code("WH-022")
+                .name("Warehouse")
+                .build();
+        StockLevelResponse response = buildResponse();
+
+        when(stockCacheService.get(22L, 11L))
+                .thenReturn(Optional.empty(), Optional.of(response));
+        when(stockLevelRepository.findByWarehouseIdAndProductId(22L, 11L))
+                .thenReturn(Optional.of(stockLevel));
+        when(productRepository.findById(11L)).thenReturn(Optional.of(product));
+        when(warehouseRepository.findById(22L)).thenReturn(Optional.of(warehouse));
+        when(stockLevelMapper.toResponse(stockLevel, product, warehouse))
+                .thenReturn(response);
+
+        // When
+        StockLevelResponse first =
+                stockLevelService.getByWarehouseAndProduct(22L, 11L);
+        StockLevelResponse second =
+                stockLevelService.getByWarehouseAndProduct(22L, 11L);
+
+        // Then
+        assertThat(first).isSameAs(response);
+        assertThat(second).isSameAs(response);
+        verify(stockLevelRepository, times(1))
+                .findByWarehouseIdAndProductId(22L, 11L);
+        verify(stockLevelMapper, times(1))
+                .toResponse(stockLevel, product, warehouse);
+        verify(stockCacheService, times(1)).put(22L, 11L, response);
     }
 
     @Test
@@ -130,6 +203,10 @@ class StockLevelServiceTest {
                 .hasMessageContaining("warehouse id: 22")
                 .hasMessageContaining("product id: 999");
         verifyNoInteractions(productRepository, warehouseRepository, stockLevelMapper);
+        verify(stockCacheService, never()).put(
+                anyLong(),
+                anyLong(),
+                any(StockLevelResponse.class));
     }
 
     @Test

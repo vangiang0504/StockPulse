@@ -284,7 +284,7 @@ class Week1OpenApiDocumentationTest {
         }
 
         List<String> forbiddenFragments = List.of(
-                "/api/v1/movements", "/api/v1/alerts", "/api/v1/reorder-suggestions",
+                "/api/v1/alerts", "/api/v1/reorder-suggestions",
                 "/dashboard", "/report", "/reports");
         pathNames(api).forEach(path -> forbiddenFragments.forEach(fragment ->
                 assertThat(path).doesNotStartWith(fragment)));
