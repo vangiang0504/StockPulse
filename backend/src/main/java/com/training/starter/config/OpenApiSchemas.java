@@ -5,6 +5,8 @@ import com.training.starter.common.PageResponse;
 import com.training.starter.dto.response.CategoryResponse;
 import com.training.starter.dto.response.ProductResponse;
 import com.training.starter.dto.response.ProductSummaryResponse;
+import com.training.starter.dto.response.StockLevelResponse;
+import com.training.starter.dto.response.StockSummaryResponse;
 import com.training.starter.dto.response.WarehouseResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -42,6 +44,16 @@ public final class OpenApiSchemas {
     @Schema(name = "WarehousePageResponseEnvelope")
     public static class WarehousePageResponseEnvelope
             extends ApiResponse<PageResponse<WarehouseResponse>> {
+    }
+
+    @Schema(name = "StockLevelPageResponseEnvelope")
+    public static class StockLevelPageResponseEnvelope
+            extends ApiResponse<PageResponse<StockLevelResponse>> {
+    }
+
+    @Schema(name = "StockSummaryPageResponseEnvelope")
+    public static class StockSummaryPageResponseEnvelope
+            extends ApiResponse<PageResponse<StockSummaryResponse>> {
     }
 
     @Schema(name = "ErrorResponseEnvelope", description = "Standard StockPulse error response")

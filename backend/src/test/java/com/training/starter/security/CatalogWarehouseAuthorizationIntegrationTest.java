@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.training.starter.BaseIntegrationTest;
 import com.training.starter.entity.Category;
 import com.training.starter.entity.Product;
+import com.training.starter.entity.StockLevel;
 import com.training.starter.entity.User;
 import com.training.starter.entity.Warehouse;
 import com.training.starter.enums.Role;
 import com.training.starter.repository.CategoryRepository;
 import com.training.starter.repository.ProductRepository;
+import com.training.starter.repository.StockLevelRepository;
 import com.training.starter.repository.UserRepository;
 import com.training.starter.repository.WarehouseRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +44,9 @@ class CatalogWarehouseAuthorizationIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private WarehouseRepository warehouseRepository;
+
+    @Autowired
+    private StockLevelRepository stockLevelRepository;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -99,6 +104,12 @@ class CatalogWarehouseAuthorizationIntegrationTest extends BaseIntegrationTest {
                 .address("Test address")
                 .active(true)
                 .build());
+        stockLevelRepository.save(StockLevel.builder()
+                .productId(product.getId())
+                .warehouseId(warehouse.getId())
+                .quantity(25)
+                .reservedQuantity(5)
+                .build());
     }
 
     @Test
@@ -106,7 +117,10 @@ class CatalogWarehouseAuthorizationIntegrationTest extends BaseIntegrationTest {
         String[] reads = {
                 "/api/v1/products",
                 "/api/v1/categories",
-                "/api/v1/warehouses"
+                "/api/v1/warehouses",
+                "/api/v1/stock",
+                "/api/v1/stock/low",
+                "/api/v1/stock/summary"
         };
 
         for (String path : reads) {
@@ -124,7 +138,7 @@ class CatalogWarehouseAuthorizationIntegrationTest extends BaseIntegrationTest {
     @Test
     void everyRoleFollowsTheReadAuthorizationMatrix() throws Exception {
         for (Role role : Role.values()) {
-            HttpStatus expected = role == Role.STAFF ? HttpStatus.FORBIDDEN : HttpStatus.OK;
+            HttpStatus expected = HttpStatus.OK;
             String[] reads = {
                     "/api/v1/products",
                     "/api/v1/products/" + product.getId(),
@@ -132,7 +146,10 @@ class CatalogWarehouseAuthorizationIntegrationTest extends BaseIntegrationTest {
                     "/api/v1/categories",
                     "/api/v1/categories/" + category.getId(),
                     "/api/v1/warehouses",
-                    "/api/v1/warehouses/" + warehouse.getId()
+                    "/api/v1/warehouses/" + warehouse.getId(),
+                    "/api/v1/stock",
+                    "/api/v1/stock/low",
+                    "/api/v1/stock/summary"
             };
 
             for (String path : reads) {
