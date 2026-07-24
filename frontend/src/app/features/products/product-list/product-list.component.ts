@@ -11,6 +11,7 @@ import { ProductSummary } from '../product.model';
 import { CategoryService } from '../../categories/category.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-product-list',
@@ -21,12 +22,23 @@ import { AuthService } from '../../../core/services/auth.service';
       <div class="page-head">
         <div>
           <h2>Products</h2>
-          <p class="page-subtitle">{{ totalElements }} products registered</p>
+          <p class="page-subtitle">{{ subtitle }}</p>
         </div>
         @if (canManage) {
           <a mat-raised-button color="primary" routerLink="/products/create">
             <mat-icon>add</mat-icon> New Product
           </a>
+        }
+      </div>
+
+      <div class="search-bar">
+        <mat-icon>search</mat-icon>
+        <input type="text" [value]="searchQuery" (input)="onSearch($any($event.target).value)"
+               placeholder="Search products by SKU or name…" aria-label="Search products" />
+        @if (searchQuery) {
+          <button type="button" class="clear-btn" (click)="clearSearch()" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
         }
       </div>
 
@@ -104,6 +116,14 @@ import { AuthService } from '../../../core/services/auth.service';
       background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-radius); }
     .list-state.empty mat-icon { font-size: 48px; width: 48px; height: 48px; }
     .cell-strong { font-weight: 500; color: var(--sp-text); }
+    .search-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; max-width: 420px;
+      background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-radius-sm); padding: 8px 12px; }
+    .search-bar:focus-within { border-color: var(--sp-primary); box-shadow: 0 0 0 3px var(--sp-primary-50); }
+    .search-bar > mat-icon { color: var(--sp-text-faint); font-size: 20px; width: 20px; height: 20px; }
+    .search-bar input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--sp-text); font-family: inherit; }
+    .search-bar input::placeholder { color: var(--sp-text-faint); }
+    .clear-btn { display: inline-flex; align-items: center; border: none; background: transparent; cursor: pointer; color: var(--sp-text-faint); padding: 0; }
+    .clear-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
   `]
 })
 export class ProductListComponent implements OnInit {
@@ -113,9 +133,12 @@ export class ProductListComponent implements OnInit {
   pageSize = 20;
   currentPage = 0;
   loading = false;
+  searchQuery = '';
 
   /** categoryId -> category name, so the table can show a label instead of a raw id. */
   private categoryNames = new Map<number, string>();
+  /** Debounced stream of search-box input. */
+  private searchTerms = new Subject<string>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -138,6 +161,26 @@ export class ProductListComponent implements OnInit {
   ngOnInit(): void {
     this.loadCategories();
     this.loadProducts();
+    // Debounce keystrokes so we hit the search endpoint at most once per pause.
+    this.searchTerms.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.currentPage = 0;
+      this.loadProducts();
+    });
+  }
+
+  get subtitle(): string {
+    const q = this.searchQuery.trim();
+    return q ? `${this.totalElements} results for "${q}"` : `${this.totalElements} products registered`;
+  }
+
+  onSearch(value: string): void {
+    this.searchQuery = value;
+    this.searchTerms.next(value.trim());
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchTerms.next('');
   }
 
   loadCategories(): void {
@@ -153,7 +196,11 @@ export class ProductListComponent implements OnInit {
 
   loadProducts(): void {
     this.loading = true;
-    this.productService.getProducts(this.currentPage, this.pageSize).subscribe({
+    const query = this.searchQuery.trim();
+    const request$ = query
+      ? this.productService.searchProducts(query, this.currentPage, this.pageSize)
+      : this.productService.getProducts(this.currentPage, this.pageSize);
+    request$.subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.products = res.data.content;

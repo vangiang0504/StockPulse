@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { PageEvent } from '@angular/material/paginator';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
@@ -34,11 +34,12 @@ describe('ProductListComponent', () => {
   };
 
   beforeEach(async () => {
-    productService = jasmine.createSpyObj<ProductService>('ProductService', ['getProducts']);
+    productService = jasmine.createSpyObj<ProductService>('ProductService', ['getProducts', 'searchProducts']);
     notification = jasmine.createSpyObj<NotificationService>('NotificationService', ['error']);
     categoryService = jasmine.createSpyObj<CategoryService>('CategoryService', ['getCategories']);
     authService = jasmine.createSpyObj<AuthService>('AuthService', ['getRole']);
     productService.getProducts.and.returnValue(of(pageResponse([product])));
+    productService.searchProducts.and.returnValue(of(pageResponse([product])));
     categoryService.getCategories.and.returnValue(of(categoryPage()));
     authService.getRole.and.returnValue('ADMIN');
 
@@ -104,6 +105,29 @@ describe('ProductListComponent', () => {
     expect(component.loading).toBeFalse();
     expect(notification.error).toHaveBeenCalledOnceWith('Failed to load products');
   });
+
+  it('calls the search endpoint (page reset) after the debounce, not getProducts', fakeAsync(() => {
+    fixture.detectChanges();
+    productService.getProducts.calls.reset();
+
+    component.onSearch('mouse');
+    tick(300);
+
+    expect(productService.searchProducts).toHaveBeenCalledOnceWith('mouse', 0, 20);
+    expect(productService.getProducts).not.toHaveBeenCalled();
+  }));
+
+  it('falls back to getProducts when the search box is cleared', fakeAsync(() => {
+    fixture.detectChanges();
+    component.onSearch('mouse');
+    tick(300);
+    productService.getProducts.calls.reset();
+
+    component.clearSearch();
+    tick(300);
+
+    expect(productService.getProducts).toHaveBeenCalledOnceWith(0, 20);
+  }));
 
   function pageResponse(content: ProductSummary[]): ApiResponse<PageResponse<ProductSummary>> {
     return {
