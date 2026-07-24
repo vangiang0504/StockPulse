@@ -584,8 +584,8 @@ Every story must preserve the established project patterns, compile cleanly, kee
 | REQ-STP-B-205 | IMPLEMENTED | Story 3.3. |
 | REQ-STP-B-206 | IMPLEMENTED | Story 2.3. |
 | REQ-STP-B-207 | IMPLEMENTED | Story 4.1—StockPulse topology, versioned event contract, and after-commit publisher are complete; retry/DLQ remains B-305. |
-| REQ-STP-B-208 | NOT_IMPLEMENTED | Story 4.2. |
-| REQ-STP-B-209 | NOT_IMPLEMENTED | Stories 4.2 and 4.3. |
+| REQ-STP-B-208 | IMPLEMENTED | Story 4.2—committed-stock threshold consumer and versioned low-stock publication are complete. |
+| REQ-STP-B-209 | IMPLEMENTED | Stories 4.2 and 4.3—idempotent reorder creation and MailHog email consumer are complete. |
 | REQ-STP-F-201 | NOT_IMPLEMENTED | Story 2.4. |
 | REQ-STP-F-202 | NOT_IMPLEMENTED | Story 3.4. |
 | REQ-STP-F-203 | NOT_IMPLEMENTED | Story 3.4. |
@@ -612,7 +612,7 @@ Every story must preserve the established project patterns, compile cleanly, kee
 | REQ-STP-W-405 | PARTIALLY_IMPLEMENTED | Story 6.4—extend existing README only for missing StockPulse content. |
 | REQ-STP-W-406 | NOT_IMPLEMENTED | Story 6.5. |
 
-**Coverage:** 48 of 48 requirement identifiers preserved: 15 implemented, 8 partial requirements scoped to missing work, and 25 not-implemented requirements planned.
+**Coverage:** 48 of 48 requirement identifiers preserved: 17 implemented, 8 partial requirements scoped to missing work, and 23 not-implemented requirements planned.
 
 ## Dependency-Ordered Delivery
 

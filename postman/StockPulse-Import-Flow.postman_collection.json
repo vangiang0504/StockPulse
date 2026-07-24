@@ -1,0 +1,519 @@
+{
+  "info": {
+    "_postman_id": "ce27209c-3eec-4686-a4db-a41ab6a51190",
+    "name": "StockPulse — Import Business Flow",
+    "description": "Run backend/test-data/import-flow-seed.sql first. Then select the StockPulse Local environment and run the Import Flow folder in order. The flow uses STAFF to create/complete and MANAGER to approve.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Import Flow — Run in order",
+      "item": [
+        {
+          "name": "01 — Login as STAFF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('STAFF login succeeds', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.role).to.eql('STAFF');",
+                  "  pm.expect(json.data.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.environment.set('staffToken', json.data.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{staffUsername}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "02 — Login as MANAGER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('MANAGER login succeeds', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.role).to.eql('MANAGER');",
+                  "  pm.expect(json.data.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.environment.set('managerToken', json.data.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{managerUsername}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "03 — Verify seeded stock baseline",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Seeded stock baseline is correct', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  const content = json.data.content;",
+                  "  const productA = content.find(row => String(row.productId) === pm.environment.get('productAId'));",
+                  "  const productB = content.find(row => String(row.productId) === pm.environment.get('productBId'));",
+                  "  pm.expect(productA, 'Product A stock row').to.exist;",
+                  "  pm.expect(productB, 'Product B stock row').to.exist;",
+                  "  pm.expect(productA.quantity).to.eql(Number(pm.environment.get('baselineA')));",
+                  "  pm.expect(productB.quantity).to.eql(Number(pm.environment.get('baselineB')));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock?warehouseId={{warehouseId}}&page=0&size=20&sortBy=productId&sortDir=ASC",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stock"
+              ],
+              "query": [
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "productId"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "ASC"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "04 — Create IMPORT as STAFF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Import movement is created pending approval', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.type).to.eql('IMPORT');",
+                  "  pm.expect(json.data.status).to.eql('PENDING_APPROVAL');",
+                  "  pm.expect(String(json.data.warehouseId)).to.eql(pm.environment.get('warehouseId'));",
+                  "  pm.expect(json.data.items).to.have.lengthOf(2);",
+                  "  pm.environment.set('movementId', String(json.data.id));",
+                  "  pm.environment.set('movementReference', json.data.referenceNo);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warehouseId\": {{warehouseId}},\n  \"notes\": \"Postman import lifecycle test\",\n  \"items\": [\n    {\n      \"productId\": {{productAId}},\n      \"quantity\": {{importQuantityA}},\n      \"unitCost\": 12.50,\n      \"batchNumber\": \"POSTMAN-A\",\n      \"expiryDate\": \"2027-12-31\",\n      \"notes\": \"Product A import\"\n    },\n    {\n      \"productId\": {{productBId}},\n      \"quantity\": {{importQuantityB}},\n      \"unitCost\": 7.25,\n      \"batchNumber\": \"POSTMAN-B\",\n      \"expiryDate\": \"2027-12-31\",\n      \"notes\": \"Product B import\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/movements/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movements",
+                "import"
+              ]
+            }
+          }
+        },
+        {
+          "name": "05 — Verify movement detail before approval",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created movement detail is consistent', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(String(data.id)).to.eql(pm.environment.get('movementId'));",
+                  "  pm.expect(data.referenceNo).to.eql(pm.environment.get('movementReference'));",
+                  "  pm.expect(data.status).to.eql('PENDING_APPROVAL');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/movements/{{movementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movements",
+                "{{movementId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "06 — Approve IMPORT as MANAGER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Manager approves the import', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.status).to.eql('APPROVED');",
+                  "  pm.expect(data.approvedBy).to.not.eql(null);",
+                  "  pm.expect(data.approvedBy).to.not.eql(data.createdBy);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{managerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/movements/{{movementId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movements",
+                "{{movementId}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "07 — Complete IMPORT as STAFF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Staff completes the approved import', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.status).to.eql('COMPLETED');",
+                  "  pm.expect(data.type).to.eql('IMPORT');",
+                  "  pm.expect(String(data.id)).to.eql(pm.environment.get('movementId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/movements/{{movementId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movements",
+                "{{movementId}}",
+                "complete"
+              ]
+            }
+          }
+        },
+        {
+          "name": "08 — Verify final stock quantities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Import increases both stock levels exactly once', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const content = pm.response.json().data.content;",
+                  "  const productA = content.find(row => String(row.productId) === pm.environment.get('productAId'));",
+                  "  const productB = content.find(row => String(row.productId) === pm.environment.get('productBId'));",
+                  "  const expectedA = Number(pm.environment.get('baselineA')) + Number(pm.environment.get('importQuantityA'));",
+                  "  const expectedB = Number(pm.environment.get('baselineB')) + Number(pm.environment.get('importQuantityB'));",
+                  "  pm.expect(productA.quantity, 'Product A final quantity').to.eql(expectedA);",
+                  "  pm.expect(productB.quantity, 'Product B final quantity').to.eql(expectedB);",
+                  "  pm.expect(productA.availableQuantity).to.eql(expectedA);",
+                  "  pm.expect(productB.availableQuantity).to.eql(expectedB);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock?warehouseId={{warehouseId}}&page=0&size=20&sortBy=productId&sortDir=ASC",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stock"
+              ],
+              "query": [
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "productId"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "ASC"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "09 — Verify completed movement detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Movement remains completed and auditable', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data.status).to.eql('COMPLETED');",
+                  "  pm.expect(data.referenceNo).to.eql(pm.environment.get('movementReference'));",
+                  "  pm.expect(data.createdBy).to.not.eql(null);",
+                  "  pm.expect(data.approvedBy).to.not.eql(null);",
+                  "  pm.expect(data.items).to.have.lengthOf(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/movements/{{movementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movements",
+                "{{movementId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

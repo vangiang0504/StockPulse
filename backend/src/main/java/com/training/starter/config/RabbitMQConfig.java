@@ -11,8 +11,10 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @Configuration
+@EnableConfigurationProperties(AlertEmailProperties.class)
 public class RabbitMQConfig {
 
     public static final String EXCHANGE_NAME = "training.exchange";

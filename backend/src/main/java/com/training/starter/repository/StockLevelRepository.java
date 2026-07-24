@@ -2,6 +2,7 @@ package com.training.starter.repository;
 
 import com.training.starter.entity.StockLevel;
 import com.training.starter.repository.projection.StockLevelProjection;
+import com.training.starter.repository.projection.StockThresholdProjection;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,22 @@ public interface StockLevelRepository extends JpaRepository<StockLevel, Long> {
             ORDER BY sl.productId ASC, sl.warehouseId ASC
             """)
     List<StockLevel> findAllForUpdate(
+            @Param("warehouseIds") List<Long> warehouseIds,
+            @Param("productIds") List<Long> productIds);
+
+    @Query("""
+            SELECT
+                sl.productId AS productId,
+                sl.warehouseId AS warehouseId,
+                sl.quantity AS quantity,
+                p.reorderPoint AS reorderPoint
+            FROM StockLevel sl
+            JOIN Product p ON p.id = sl.productId
+            WHERE sl.warehouseId IN :warehouseIds
+              AND sl.productId IN :productIds
+            ORDER BY sl.productId ASC, sl.warehouseId ASC
+            """)
+    List<StockThresholdProjection> findAffectedWithThresholds(
             @Param("warehouseIds") List<Long> warehouseIds,
             @Param("productIds") List<Long> productIds);
 

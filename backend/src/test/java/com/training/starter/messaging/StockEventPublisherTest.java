@@ -2,6 +2,8 @@ package com.training.starter.messaging;
 
 import com.training.starter.config.StockRabbitTopology;
 import com.training.starter.enums.MovementType;
+import com.training.starter.enums.StockStatus;
+import com.training.starter.messaging.event.StockLowEvent;
 import com.training.starter.messaging.event.StockMovementCompletedEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -119,6 +121,39 @@ class StockEventPublisherTest {
                 eq("stock.import.completed"),
                 same(event),
                 org.mockito.ArgumentMatchers.any(MessagePostProcessor.class));
+    }
+
+    @Test
+    void publishStockLow_usesLowStockRoutingKeyAndEventType() {
+        // Given
+        StockEventPublisher publisher = new StockEventPublisher(rabbitTemplate);
+        StockLowEvent event = new StockLowEvent(
+                "1.0",
+                "c986848e-068f-4c92-9d6d-4dc0a889597d",
+                "87bb51d8-93d9-4cf8-a176-f29130f775ab",
+                31L,
+                11L,
+                3L,
+                5,
+                20,
+                StockStatus.LOW_STOCK,
+                Instant.parse("2026-07-24T04:01:00Z"));
+
+        // When
+        publisher.publishStockLow(event);
+
+        // Then
+        ArgumentCaptor<MessagePostProcessor> processorCaptor =
+                ArgumentCaptor.forClass(MessagePostProcessor.class);
+        verify(rabbitTemplate).convertAndSend(
+                eq(StockRabbitTopology.STOCK_EXCHANGE),
+                eq(StockRabbitTopology.LOW_STOCK_ROUTING_KEY),
+                same(event),
+                processorCaptor.capture());
+        Message message = processorCaptor.getValue().postProcessMessage(
+                new Message(new byte[0], new MessageProperties()));
+        assertThat(message.getMessageProperties().getType())
+                .isEqualTo("StockLowEvent");
     }
 
     private StockMovementCompletedEvent event() {

@@ -17,7 +17,7 @@ public record StockMovementCompletedEvent(
         List<Long> productIds,
         List<Long> warehouseIds,
         Instant occurredAt
-) {
+) implements StockEvent {
 
     public static final String CURRENT_SCHEMA_VERSION = "1.0";
 

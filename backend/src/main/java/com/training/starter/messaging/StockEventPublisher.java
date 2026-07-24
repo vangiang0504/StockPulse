@@ -1,6 +1,8 @@
 package com.training.starter.messaging;
 
 import com.training.starter.config.StockRabbitTopology;
+import com.training.starter.messaging.event.StockEvent;
+import com.training.starter.messaging.event.StockLowEvent;
 import com.training.starter.messaging.event.StockMovementCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,15 +17,20 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Slf4j
 public class StockEventPublisher {
 
-    private static final String EVENT_TYPE = "StockMovementCompletedEvent";
-
     private final RabbitTemplate rabbitTemplate;
 
     public void publishMovementCompleted(StockMovementCompletedEvent event) {
-        Runnable publishAction = () -> publish(
+        publishAfterCommit(
                 StockRabbitTopology.movementCompletedRoutingKey(event.movementType()),
                 event);
+    }
 
+    public void publishStockLow(StockLowEvent event) {
+        publishAfterCommit(StockRabbitTopology.LOW_STOCK_ROUTING_KEY, event);
+    }
+
+    private void publishAfterCommit(String routingKey, StockEvent event) {
+        Runnable publishAction = () -> publish(routingKey, event);
         if (TransactionSynchronizationManager.isActualTransactionActive()
                 && TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(
@@ -39,25 +46,26 @@ public class StockEventPublisher {
         publishAction.run();
     }
 
-    private void publish(String routingKey, StockMovementCompletedEvent event) {
+    private void publish(String routingKey, StockEvent event) {
+        String eventType = event.getClass().getSimpleName();
         rabbitTemplate.convertAndSend(
                 StockRabbitTopology.STOCK_EXCHANGE,
                 routingKey,
                 event,
-                message -> withEventMetadata(message, event));
+                message -> withEventMetadata(message, event, eventType));
         log.info(
                 "Published {} {} for movement {} using routing key {}",
-                EVENT_TYPE,
+                eventType,
                 event.eventId(),
                 event.movementId(),
                 routingKey);
     }
 
     private Message withEventMetadata(
-            Message message, StockMovementCompletedEvent event) {
+            Message message, StockEvent event, String eventType) {
         message.getMessageProperties().setMessageId(event.eventId());
         message.getMessageProperties().setCorrelationId(event.eventId());
-        message.getMessageProperties().setType(EVENT_TYPE);
+        message.getMessageProperties().setType(eventType);
         message.getMessageProperties().setHeader(
                 "schemaVersion", event.schemaVersion());
         return message;

@@ -2,6 +2,8 @@ package com.training.starter.config;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.training.starter.enums.MovementType;
+import com.training.starter.enums.StockStatus;
+import com.training.starter.messaging.event.StockLowEvent;
 import com.training.starter.messaging.event.StockMovementCompletedEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Binding;
@@ -96,6 +98,31 @@ class RabbitMQConfigTest {
                 .isEqualTo("stock.export.completed");
         assertThat(StockRabbitTopology.movementCompletedRoutingKey(MovementType.TRANSFER))
                 .isEqualTo("stock.transfer.completed");
+    }
+
+    @Test
+    void jsonMessageConverter_roundTripsVersionedStockLowEvent() {
+        // Given
+        MessageConverter converter = config.jsonMessageConverter(
+                JsonMapper.builder().findAndAddModules().build());
+        StockLowEvent event = new StockLowEvent(
+                "1.0",
+                "c986848e-068f-4c92-9d6d-4dc0a889597d",
+                "87bb51d8-93d9-4cf8-a176-f29130f775ab",
+                31L,
+                11L,
+                3L,
+                5,
+                20,
+                StockStatus.LOW_STOCK,
+                Instant.parse("2026-07-24T04:01:00Z"));
+
+        // When
+        Message message = converter.toMessage(event, new MessageProperties());
+        Object roundTrip = converter.fromMessage(message);
+
+        // Then
+        assertThat(roundTrip).isEqualTo(event);
     }
 
     private void assertQueueAndBinding(
