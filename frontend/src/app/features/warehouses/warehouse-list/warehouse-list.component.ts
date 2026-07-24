@@ -13,68 +13,78 @@ import { WarehouseService } from '../warehouse.service';
   standalone: true,
   imports: [MatTableModule, MatPaginatorModule, MatChipsModule, MatIconModule, MatProgressSpinnerModule],
   template: `
-    <h2>Warehouses</h2>
-
-    @if (loading) {
-      <div class="state" aria-live="polite">
-        <mat-spinner diameter="40"></mat-spinner>
-        <span class="visually-hidden">Loading warehouses</span>
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h2>Warehouses</h2>
+          <p class="page-subtitle">Storage locations across the network</p>
+        </div>
       </div>
-    } @else if (errorMessage) {
-      <div class="state error-state" role="alert">
-        <mat-icon>error_outline</mat-icon>
-        <p>{{ errorMessage }}</p>
-      </div>
-    } @else if (warehouses.length === 0) {
-      <div class="state empty-state">
-        <mat-icon>warehouse</mat-icon>
-        <p>No warehouses found.</p>
-      </div>
-    } @else {
-      <table mat-table [dataSource]="warehouses" class="full-width">
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let warehouse">{{ warehouse.name }}</td>
-        </ng-container>
 
-        <ng-container matColumnDef="code">
-          <th mat-header-cell *matHeaderCellDef>Code</th>
-          <td mat-cell *matCellDef="let warehouse">{{ warehouse.code }}</td>
-        </ng-container>
+      @if (loading) {
+        <div class="state" aria-live="polite">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span class="visually-hidden">Loading warehouses</span>
+        </div>
+      } @else if (errorMessage) {
+        <div class="state error-state" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ errorMessage }}</p>
+        </div>
+      } @else if (warehouses.length === 0) {
+        <div class="state empty-state">
+          <mat-icon>warehouse</mat-icon>
+          <p>No warehouses found.</p>
+        </div>
+      } @else {
+        <div class="surface-card">
+          <table mat-table [dataSource]="warehouses" class="full-width">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let warehouse"><span class="cell-strong">{{ warehouse.name }}</span></td>
+            </ng-container>
 
-        <ng-container matColumnDef="address">
-          <th mat-header-cell *matHeaderCellDef>Address</th>
-          <td mat-cell *matCellDef="let warehouse">{{ warehouse.address }}</td>
-        </ng-container>
+            <ng-container matColumnDef="code">
+              <th mat-header-cell *matHeaderCellDef>Code</th>
+              <td mat-cell *matCellDef="let warehouse"><span class="sku-chip">{{ warehouse.code }}</span></td>
+            </ng-container>
 
-        <ng-container matColumnDef="active">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let warehouse">
-            <mat-chip [highlighted]="warehouse.active">
-              {{ warehouse.active ? 'Active' : 'Inactive' }}
-            </mat-chip>
-          </td>
-        </ng-container>
+            <ng-container matColumnDef="address">
+              <th mat-header-cell *matHeaderCellDef>Address</th>
+              <td mat-cell *matCellDef="let warehouse">{{ warehouse.address }}</td>
+            </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    }
+            <ng-container matColumnDef="active">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let warehouse">
+                <mat-chip [highlighted]="warehouse.active">
+                  {{ warehouse.active ? 'Active' : 'Inactive' }}
+                </mat-chip>
+              </td>
+            </ng-container>
 
-    @if (!loading && !errorMessage) {
-      <mat-paginator
-        [length]="totalElements"
-        [pageIndex]="currentPage"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="pageSizeOptions"
-        (page)="onPageChange($event)">
-      </mat-paginator>
-    }
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator
+            [length]="totalElements"
+            [pageIndex]="currentPage"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            (page)="onPageChange($event)">
+          </mat-paginator>
+        </div>
+      }
+    </div>
   `,
   styles: [`
-    .state { min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; }
+    .state { min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; color: var(--sp-text-faint);
+      background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-radius); }
     .state mat-icon { font-size: 48px; width: 48px; height: 48px; }
     .error-state { color: #b00020; }
+    .cell-strong { font-weight: 500; color: var(--sp-text); }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   `]
 })

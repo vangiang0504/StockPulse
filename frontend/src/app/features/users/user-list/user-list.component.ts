@@ -15,61 +15,71 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   standalone: true,
   imports: [RouterLink, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatChipsModule, MatDialogModule],
   template: `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2>Users</h2>
-      <a mat-raised-button color="primary" routerLink="/users/new">
-        <mat-icon>add</mat-icon> New User
-      </a>
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h2>Users</h2>
+          <p class="page-subtitle">{{ totalElements }} accounts</p>
+        </div>
+        <a mat-raised-button color="primary" routerLink="/users/new">
+          <mat-icon>add</mat-icon> New User
+        </a>
+      </div>
+
+      <div class="surface-card">
+        <table mat-table [dataSource]="users" class="full-width">
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let user"><span class="num">{{ user.id }}</span></td>
+          </ng-container>
+
+          <ng-container matColumnDef="username">
+            <th mat-header-cell *matHeaderCellDef>Username</th>
+            <td mat-cell *matCellDef="let user"><span class="cell-strong">{{ user.username }}</span></td>
+          </ng-container>
+
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="fullName">
+            <th mat-header-cell *matHeaderCellDef>Full Name</th>
+            <td mat-cell *matCellDef="let user">{{ user.fullName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let user"><span class="category-pill">{{ user.role }}</span></td>
+          </ng-container>
+
+          <ng-container matColumnDef="active">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip [highlighted]="user.active">{{ user.active ? 'Active' : 'Inactive' }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let user">
+              <a mat-icon-button [routerLink]="['/users', user.id, 'edit']"><mat-icon>edit</mat-icon></a>
+              <button mat-icon-button color="warn" (click)="onDelete(user)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]"
+                       (page)="onPageChange($event)"></mat-paginator>
+      </div>
     </div>
-
-    <table mat-table [dataSource]="users" class="full-width">
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>ID</th>
-        <td mat-cell *matCellDef="let user">{{ user.id }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="username">
-        <th mat-header-cell *matHeaderCellDef>Username</th>
-        <td mat-cell *matCellDef="let user">{{ user.username }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef>Email</th>
-        <td mat-cell *matCellDef="let user">{{ user.email }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="fullName">
-        <th mat-header-cell *matHeaderCellDef>Full Name</th>
-        <td mat-cell *matCellDef="let user">{{ user.fullName }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="role">
-        <th mat-header-cell *matHeaderCellDef>Role</th>
-        <td mat-cell *matCellDef="let user">{{ user.role }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="active">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let user">
-          <mat-chip [highlighted]="user.active">{{ user.active ? 'Active' : 'Inactive' }}</mat-chip>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
-        <td mat-cell *matCellDef="let user">
-          <a mat-icon-button [routerLink]="['/users', user.id, 'edit']"><mat-icon>edit</mat-icon></a>
-          <button mat-icon-button color="warn" (click)="onDelete(user)"><mat-icon>delete</mat-icon></button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-
-    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]"
-                   (page)="onPageChange($event)"></mat-paginator>
-  `
+  `,
+  styles: [`
+    .cell-strong { font-weight: 500; color: var(--sp-text); }
+  `]
 })
 export class UserListComponent implements OnInit {
   users: User[] = [];

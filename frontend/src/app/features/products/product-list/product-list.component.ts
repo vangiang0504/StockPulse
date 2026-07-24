@@ -17,80 +17,94 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [RouterLink, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatChipsModule, MatProgressSpinnerModule],
   template: `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2>Products</h2>
-      @if (canManage) {
-        <a mat-raised-button color="primary" routerLink="/products/create">
-          <mat-icon>add</mat-icon> New Product
-        </a>
+    <div class="page">
+      <div class="page-head">
+        <div>
+          <h2>Products</h2>
+          <p class="page-subtitle">{{ totalElements }} products registered</p>
+        </div>
+        @if (canManage) {
+          <a mat-raised-button color="primary" routerLink="/products/create">
+            <mat-icon>add</mat-icon> New Product
+          </a>
+        }
+      </div>
+
+      @if (loading) {
+        <div class="list-state">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (products.length === 0) {
+        <div class="list-state empty">
+          <mat-icon>inventory_2</mat-icon>
+          <p>No products found.</p>
+        </div>
+      } @else {
+        <div class="surface-card">
+          <table mat-table [dataSource]="products" class="full-width">
+            <ng-container matColumnDef="sku">
+              <th mat-header-cell *matHeaderCellDef>SKU</th>
+              <td mat-cell *matCellDef="let product"><span class="sku-chip">{{ product.sku }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let product"><span class="cell-strong">{{ product.name }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="categoryId">
+              <th mat-header-cell *matHeaderCellDef>Category</th>
+              <td mat-cell *matCellDef="let product"><span class="category-pill">{{ categoryName(product.categoryId) }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="unit">
+              <th mat-header-cell *matHeaderCellDef>Unit</th>
+              <td mat-cell *matCellDef="let product"><span class="num">{{ product.unit }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="minStock">
+              <th mat-header-cell *matHeaderCellDef>Min Stock</th>
+              <td mat-cell *matCellDef="let product"><span class="num">{{ product.minStock }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="reorderPoint">
+              <th mat-header-cell *matHeaderCellDef>Reorder Point</th>
+              <td mat-cell *matCellDef="let product"><span class="num">{{ product.reorderPoint }}</span></td>
+            </ng-container>
+
+            <ng-container matColumnDef="active">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let product">
+                <mat-chip [highlighted]="product.active">{{ product.active ? 'Active' : 'Inactive' }}</mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let product">
+                @if (canManage) {
+                  <a mat-icon-button [routerLink]="['/products', product.id, 'edit']"><mat-icon>edit</mat-icon></a>
+                }
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]"
+                         (page)="onPageChange($event)"></mat-paginator>
+        </div>
       }
     </div>
-
-    @if (loading) {
-      <div style="display: flex; justify-content: center; padding: 48px;">
-        <mat-spinner diameter="40"></mat-spinner>
-      </div>
-    } @else if (products.length === 0) {
-      <div style="text-align: center; padding: 48px; color: #888;">
-        <mat-icon style="font-size: 48px; width: 48px; height: 48px;">inventory_2</mat-icon>
-        <p>No products found.</p>
-      </div>
-    } @else {
-      <table mat-table [dataSource]="products" class="full-width">
-        <ng-container matColumnDef="sku">
-          <th mat-header-cell *matHeaderCellDef>SKU</th>
-          <td mat-cell *matCellDef="let product">{{ product.sku }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let product">{{ product.name }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="categoryId">
-          <th mat-header-cell *matHeaderCellDef>Category</th>
-          <td mat-cell *matCellDef="let product">{{ categoryName(product.categoryId) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="unit">
-          <th mat-header-cell *matHeaderCellDef>Unit</th>
-          <td mat-cell *matCellDef="let product">{{ product.unit }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="minStock">
-          <th mat-header-cell *matHeaderCellDef>Min Stock</th>
-          <td mat-cell *matCellDef="let product">{{ product.minStock }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="reorderPoint">
-          <th mat-header-cell *matHeaderCellDef>Reorder Point</th>
-          <td mat-cell *matCellDef="let product">{{ product.reorderPoint }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="active">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let product">
-            <mat-chip [highlighted]="product.active">{{ product.active ? 'Active' : 'Inactive' }}</mat-chip>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let product">
-            @if (canManage) {
-              <a mat-icon-button [routerLink]="['/products', product.id, 'edit']"><mat-icon>edit</mat-icon></a>
-            }
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    }
-
-    <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]"
-                   (page)="onPageChange($event)"></mat-paginator>
-  `
+  `,
+  styles: [`
+    .list-state { display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 200px; color: var(--sp-text-faint); gap: 8px;
+      background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-radius); }
+    .list-state.empty mat-icon { font-size: 48px; width: 48px; height: 48px; }
+    .cell-strong { font-weight: 500; color: var(--sp-text); }
+  `]
 })
 export class ProductListComponent implements OnInit {
   products: ProductSummary[] = [];
