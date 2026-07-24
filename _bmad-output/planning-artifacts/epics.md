@@ -577,21 +577,21 @@ Every story must preserve the established project patterns, compile cleanly, kee
 | REQ-STP-T-101 | IMPLEMENTED | Baseline only—10 Product service tests already satisfy it. |
 | REQ-STP-T-102 | IMPLEMENTED | Baseline only—8 Warehouse service tests already satisfy it. |
 | REQ-STP-T-103 | PARTIALLY_IMPLEMENTED | Story 5.2—only complete and record Swagger/OpenAPI verification. |
-| REQ-STP-B-201 | NOT_IMPLEMENTED | Story 2.2. |
-| REQ-STP-B-202 | NOT_IMPLEMENTED | Story 3.1. |
-| REQ-STP-B-203 | NOT_IMPLEMENTED | Story 3.2. |
-| REQ-STP-B-204 | NOT_IMPLEMENTED | Story 2.2. |
-| REQ-STP-B-205 | NOT_IMPLEMENTED | Story 3.3. |
-| REQ-STP-B-206 | NOT_IMPLEMENTED | Story 2.3. |
-| REQ-STP-B-207 | NOT_IMPLEMENTED | Story 4.1. |
-| REQ-STP-B-208 | NOT_IMPLEMENTED | Story 4.2. |
-| REQ-STP-B-209 | NOT_IMPLEMENTED | Stories 4.2 and 4.3. |
+| REQ-STP-B-201 | IMPLEMENTED | Story 2.2. |
+| REQ-STP-B-202 | IMPLEMENTED | Stories 3.1 and 3.2. |
+| REQ-STP-B-203 | IMPLEMENTED | Story 3.2. |
+| REQ-STP-B-204 | IMPLEMENTED | Story 2.2. |
+| REQ-STP-B-205 | IMPLEMENTED | Story 3.3. |
+| REQ-STP-B-206 | IMPLEMENTED | Story 2.3. |
+| REQ-STP-B-207 | IMPLEMENTED | Story 4.1—StockPulse topology, versioned event contract, and after-commit publisher are complete; retry/DLQ remains B-305. |
+| REQ-STP-B-208 | IMPLEMENTED | Story 4.2—committed-stock threshold consumer and versioned low-stock publication are complete. |
+| REQ-STP-B-209 | IMPLEMENTED | Stories 4.2 and 4.3—idempotent reorder creation and MailHog email consumer are complete. |
 | REQ-STP-F-201 | NOT_IMPLEMENTED | Story 2.4. |
 | REQ-STP-F-202 | NOT_IMPLEMENTED | Story 3.4. |
 | REQ-STP-F-203 | NOT_IMPLEMENTED | Story 3.4. |
 | REQ-STP-F-204 | NOT_IMPLEMENTED | Story 3.5. |
-| REQ-STP-T-201 | NOT_IMPLEMENTED | Story 3.2. |
-| REQ-STP-T-202 | NOT_IMPLEMENTED | Story 2.3. |
+| REQ-STP-T-201 | IMPLEMENTED | Story 3.2. |
+| REQ-STP-T-202 | IMPLEMENTED | Story 2.3. |
 | REQ-STP-B-301 | NOT_IMPLEMENTED | Story 3.6. |
 | REQ-STP-B-302 | NOT_IMPLEMENTED | Story 3.6. |
 | REQ-STP-B-303 | NOT_IMPLEMENTED | Story 2.5. |
@@ -612,7 +612,7 @@ Every story must preserve the established project patterns, compile cleanly, kee
 | REQ-STP-W-405 | PARTIALLY_IMPLEMENTED | Story 6.4—extend existing README only for missing StockPulse content. |
 | REQ-STP-W-406 | NOT_IMPLEMENTED | Story 6.5. |
 
-**Coverage:** 48 of 48 requirement identifiers preserved: 6 implemented baseline-only, 8 partial requirements scoped to missing work, and 34 not-implemented requirements planned.
+**Coverage:** 48 of 48 requirement identifiers preserved: 17 implemented, 8 partial requirements scoped to missing work, and 23 not-implemented requirements planned.
 
 ## Dependency-Ordered Delivery
 

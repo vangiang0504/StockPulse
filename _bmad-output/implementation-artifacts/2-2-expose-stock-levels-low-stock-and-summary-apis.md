@@ -1,6 +1,6 @@
 # Story 2.2: Expose Stock Levels, Low Stock, and Summary APIs
 
-Status: review
+Status: done
 
 ## Story
 

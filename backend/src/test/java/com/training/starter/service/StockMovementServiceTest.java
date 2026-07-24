@@ -6,6 +6,7 @@ import com.training.starter.dto.request.CreateMovementItemRequest;
 import com.training.starter.dto.request.CreateTransferRequest;
 import com.training.starter.dto.response.MovementResponse;
 import com.training.starter.entity.Product;
+import com.training.starter.entity.StockLevel;
 import com.training.starter.entity.StockMovement;
 import com.training.starter.entity.StockMovementItem;
 import com.training.starter.entity.User;
@@ -16,7 +17,10 @@ import com.training.starter.exception.BadRequestException;
 import com.training.starter.exception.DuplicateResourceException;
 import com.training.starter.exception.ResourceNotFoundException;
 import com.training.starter.mapper.StockMovementMapper;
+import com.training.starter.messaging.StockEventPublisher;
+import com.training.starter.messaging.event.StockMovementCompletedEvent;
 import com.training.starter.repository.ProductRepository;
+import com.training.starter.repository.StockLevelRepository;
 import com.training.starter.repository.StockMovementItemRepository;
 import com.training.starter.repository.StockMovementRepository;
 import com.training.starter.repository.UserRepository;
@@ -30,6 +34,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -59,6 +65,9 @@ class StockMovementServiceTest {
     private StockMovementItemRepository stockMovementItemRepository;
 
     @Mock
+    private StockLevelRepository stockLevelRepository;
+
+    @Mock
     private ProductRepository productRepository;
 
     @Mock
@@ -69,6 +78,12 @@ class StockMovementServiceTest {
 
     @Mock
     private StockMovementMapper stockMovementMapper;
+
+    @Mock
+    private StockCacheService stockCacheService;
+
+    @Mock
+    private StockEventPublisher stockEventPublisher;
 
     @InjectMocks
     private StockMovementServiceImpl stockMovementService;
@@ -316,7 +331,324 @@ class StockMovementServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
+    @Test
+    void getAll_filtersAndPageable_returnsMappedMovementPage() {
+        // Given
+        StockMovement movement = pendingMovement();
+        StockMovementItem item = storedItem(10L, 5);
+        MovementResponse expected = sampleResponse();
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(stockMovementRepository.findAllWithFilters(
+                        MovementType.IMPORT,
+                        MovementStatus.PENDING_APPROVAL,
+                        1L,
+                        pageable))
+                .thenReturn(new PageImpl<>(List.of(movement), pageable, 1));
+        when(warehouseRepository.findById(1L))
+                .thenReturn(Optional.of(warehouse(1L, "WH-1", "Main")));
+        when(stockMovementItemRepository.findByMovementId(5L)).thenReturn(List.of(item));
+        when(productRepository.findAllById(anyIterable()))
+                .thenReturn(List.of(product(10L, "SKU-10", "Widget")));
+        when(stockMovementMapper.toResponse(any(), any(), any(), any())).thenReturn(expected);
+
+        // When
+        var result = stockMovementService.getAll(
+                MovementType.IMPORT,
+                MovementStatus.PENDING_APPROVAL,
+                1L,
+                pageable);
+
+        // Then
+        assertThat(result.getContent()).containsExactly(expected);
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(stockMovementRepository).findAllWithFilters(
+                MovementType.IMPORT,
+                MovementStatus.PENDING_APPROVAL,
+                1L,
+                pageable);
+    }
+
+    // ---------- Approve movement ----------
+
+    @Test
+    void approve_pendingApproval_setsApproverAndApprovedStatus() {
+        // Given
+        StockMovement movement = pendingMovement();
+        StockMovementItem item = storedItem(10L, 5);
+        MovementResponse expected = sampleResponse();
+        when(stockMovementRepository.findById(5L)).thenReturn(Optional.of(movement));
+        when(userRepository.findByUsername(CURRENT_USERNAME))
+                .thenReturn(Optional.of(user(CURRENT_USER_ID, CURRENT_USERNAME)));
+        when(stockMovementRepository.save(movement)).thenReturn(movement);
+        when(warehouseRepository.findById(1L))
+                .thenReturn(Optional.of(warehouse(1L, "WH-1", "Main")));
+        when(stockMovementItemRepository.findByMovementId(5L)).thenReturn(List.of(item));
+        when(productRepository.findAllById(anyIterable()))
+                .thenReturn(List.of(product(10L, "SKU-10", "Widget")));
+        when(stockMovementMapper.toResponse(any(), any(), any(), any())).thenReturn(expected);
+
+        // When
+        MovementResponse result = stockMovementService.approve(5L);
+
+        // Then
+        assertThat(result).isSameAs(expected);
+        assertThat(movement.getStatus()).isEqualTo(MovementStatus.APPROVED);
+        assertThat(movement.getApprovedBy()).isEqualTo(CURRENT_USER_ID);
+        verify(stockMovementRepository).save(movement);
+        verify(stockLevelRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void approve_notPendingApproval_throwsBadRequestWithoutMutation() {
+        // Given
+        StockMovement movement = pendingMovement();
+        movement.setStatus(MovementStatus.COMPLETED);
+        when(stockMovementRepository.findById(5L)).thenReturn(Optional.of(movement));
+
+        // When & Then
+        assertThatThrownBy(() -> stockMovementService.approve(5L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("PENDING_APPROVAL");
+        assertThat(movement.getStatus()).isEqualTo(MovementStatus.COMPLETED);
+        assertThat(movement.getApprovedBy()).isNull();
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(stockMovementRepository, never()).save(any(StockMovement.class));
+    }
+
+    @Test
+    void approve_notFound_throwsResourceNotFoundException() {
+        // Given
+        when(stockMovementRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> stockMovementService.approve(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(stockMovementRepository, never()).save(any(StockMovement.class));
+    }
+
+    // ---------- Complete movement ----------
+
+    @Test
+    void completeMovement_import_increasesStock() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.IMPORT, 1L, null);
+        StockMovementItem item = storedItem(10L, 5);
+        StockLevel level = stockLevel(1L, 10L, 8);
+        stubCompletionCollaborators(movement, List.of(item), List.of(level));
+
+        // When
+        stockMovementService.completeMovement(5L);
+
+        // Then
+        assertThat(level.getQuantity()).isEqualTo(13);
+        assertThat(movement.getStatus()).isEqualTo(MovementStatus.COMPLETED);
+        verify(stockLevelRepository).findAllForUpdate(List.of(1L), List.of(10L));
+        verify(stockLevelRepository).saveAll(anyList());
+        verify(stockMovementRepository).save(movement);
+        verify(stockCacheService).evictAfterCommit(
+                java.util.Set.of(new StockCacheKey(1L, 10L)));
+        ArgumentCaptor<StockMovementCompletedEvent> eventCaptor =
+                ArgumentCaptor.forClass(StockMovementCompletedEvent.class);
+        verify(stockEventPublisher).publishMovementCompleted(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().movementId()).isEqualTo(5L);
+        assertThat(eventCaptor.getValue().movementReference())
+                .isEqualTo("MOV-20260724-1A2B");
+        assertThat(eventCaptor.getValue().movementType()).isEqualTo(MovementType.IMPORT);
+        assertThat(eventCaptor.getValue().productIds()).containsExactly(10L);
+        assertThat(eventCaptor.getValue().warehouseIds()).containsExactly(1L);
+    }
+
+    @Test
+    void completeMovement_importWithoutExistingLevel_createsStockLevel() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.IMPORT, 1L, null);
+        stubCompletionCollaborators(
+                movement, List.of(storedItem(10L, 5)), List.of());
+
+        // When
+        stockMovementService.completeMovement(5L);
+
+        // Then
+        List<StockLevel> savedLevels = captureSavedStockLevels();
+        assertThat(savedLevels).singleElement().satisfies(level -> {
+            assertThat(level.getWarehouseId()).isEqualTo(1L);
+            assertThat(level.getProductId()).isEqualTo(10L);
+            assertThat(level.getQuantity()).isEqualTo(5);
+            assertThat(level.getReservedQuantity()).isZero();
+        });
+    }
+
+    @Test
+    void completeMovement_export_decreasesStock() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.EXPORT, 1L, null);
+        StockLevel level = stockLevel(1L, 10L, 8);
+        stubCompletionCollaborators(
+                movement, List.of(storedItem(10L, 3)), List.of(level));
+
+        // When
+        stockMovementService.completeMovement(5L);
+
+        // Then
+        assertThat(level.getQuantity()).isEqualTo(5);
+        assertThat(movement.getStatus()).isEqualTo(MovementStatus.COMPLETED);
+    }
+
+    @Test
+    void completeMovement_exportWithInsufficientStock_throwsBadRequestWithoutMutation() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.EXPORT, 1L, null);
+        StockLevel level = stockLevel(1L, 10L, 2);
+        when(stockMovementRepository.findById(5L)).thenReturn(Optional.of(movement));
+        when(stockMovementItemRepository.findByMovementId(5L))
+                .thenReturn(List.of(storedItem(10L, 3)));
+        when(stockLevelRepository.findAllForUpdate(List.of(1L), List.of(10L)))
+                .thenReturn(List.of(level));
+
+        // When & Then
+        assertThatThrownBy(() -> stockMovementService.completeMovement(5L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Insufficient stock")
+                .hasMessageContaining("10");
+        assertThat(level.getQuantity()).isEqualTo(2);
+        assertThat(movement.getStatus()).isEqualTo(MovementStatus.APPROVED);
+        verify(stockLevelRepository, never()).saveAll(anyList());
+        verify(stockMovementRepository, never()).save(any(StockMovement.class));
+        verify(stockCacheService, never()).evictAfterCommit(any());
+        verify(stockEventPublisher, never())
+                .publishMovementCompleted(any(StockMovementCompletedEvent.class));
+    }
+
+    @Test
+    void completeMovement_transfer_updatesSourceAndDestination() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.TRANSFER, 1L, 2L);
+        StockLevel source = stockLevel(1L, 10L, 9);
+        StockLevel destination = stockLevel(2L, 10L, 4);
+        stubCompletionCollaborators(
+                movement,
+                List.of(storedItem(10L, 3)),
+                List.of(source, destination));
+
+        // When
+        stockMovementService.completeMovement(5L);
+
+        // Then
+        assertThat(source.getQuantity()).isEqualTo(6);
+        assertThat(destination.getQuantity()).isEqualTo(7);
+        verify(stockLevelRepository).findAllForUpdate(List.of(1L, 2L), List.of(10L));
+        verify(stockCacheService).evictAfterCommit(java.util.Set.of(
+                new StockCacheKey(1L, 10L),
+                new StockCacheKey(2L, 10L)));
+    }
+
+    @Test
+    void completeMovement_multipleProducts_locksInProductIdOrder() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.IMPORT, 1L, null);
+        List<StockMovementItem> items =
+                List.of(storedItem(20L, 2), storedItem(10L, 1));
+        stubCompletionCollaborators(movement, items, List.of());
+
+        // When
+        stockMovementService.completeMovement(5L);
+
+        // Then
+        verify(stockLevelRepository).findAllForUpdate(List.of(1L), List.of(10L, 20L));
+        assertThat(captureSavedStockLevels())
+                .extracting(StockLevel::getProductId)
+                .containsExactly(10L, 20L);
+    }
+
+    @Test
+    void completeMovement_notApproved_throwsBadRequestBeforeLockingStock() {
+        // Given
+        StockMovement movement = approvedMovement(MovementType.IMPORT, 1L, null);
+        movement.setStatus(MovementStatus.PENDING_APPROVAL);
+        when(stockMovementRepository.findById(5L)).thenReturn(Optional.of(movement));
+
+        // When & Then
+        assertThatThrownBy(() -> stockMovementService.completeMovement(5L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("APPROVED");
+        verify(stockMovementItemRepository, never()).findByMovementId(any());
+        verify(stockLevelRepository, never()).findAllForUpdate(anyList(), anyList());
+    }
+
     // ---------- Helpers ----------
+
+    private void stubCompletionCollaborators(
+            StockMovement movement,
+            List<StockMovementItem> items,
+            List<StockLevel> levels) {
+        when(stockMovementRepository.findById(5L)).thenReturn(Optional.of(movement));
+        when(stockMovementItemRepository.findByMovementId(5L)).thenReturn(items);
+        when(stockLevelRepository.findAllForUpdate(anyList(), anyList())).thenReturn(levels);
+        when(stockMovementRepository.save(movement)).thenReturn(movement);
+        when(warehouseRepository.findById(1L))
+                .thenReturn(Optional.of(warehouse(1L, "WH-1", "Main")));
+        if (movement.getDestWarehouseId() != null) {
+            when(warehouseRepository.findById(2L))
+                    .thenReturn(Optional.of(warehouse(2L, "WH-2", "Second")));
+        }
+        when(productRepository.findAllById(anyIterable())).thenReturn(items.stream()
+                .map(StockMovementItem::getProductId)
+                .distinct()
+                .map(productId -> product(productId, "SKU-" + productId, "Product " + productId))
+                .toList());
+    }
+
+    private StockMovement approvedMovement(
+            MovementType type, Long warehouseId, Long destWarehouseId) {
+        StockMovement movement = StockMovement.builder()
+                .referenceNo("MOV-20260724-1A2B")
+                .type(type)
+                .status(MovementStatus.APPROVED)
+                .warehouseId(warehouseId)
+                .destWarehouseId(destWarehouseId)
+                .createdBy(CURRENT_USER_ID)
+                .build();
+        movement.setId(5L);
+        return movement;
+    }
+
+    private StockMovement pendingMovement() {
+        StockMovement movement = StockMovement.builder()
+                .referenceNo("IMP-20260724-1A2B")
+                .type(MovementType.IMPORT)
+                .status(MovementStatus.PENDING_APPROVAL)
+                .warehouseId(1L)
+                .createdBy(CURRENT_USER_ID)
+                .build();
+        movement.setId(5L);
+        return movement;
+    }
+
+    private StockMovementItem storedItem(Long productId, int quantity) {
+        StockMovementItem item = StockMovementItem.builder()
+                .movementId(5L)
+                .productId(productId)
+                .quantity(quantity)
+                .build();
+        item.setId(productId + 100L);
+        return item;
+    }
+
+    private StockLevel stockLevel(Long warehouseId, Long productId, int quantity) {
+        return StockLevel.builder()
+                .warehouseId(warehouseId)
+                .productId(productId)
+                .quantity(quantity)
+                .reservedQuantity(0)
+                .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<StockLevel> captureSavedStockLevels() {
+        ArgumentCaptor<List<StockLevel>> captor = ArgumentCaptor.forClass(List.class);
+        verify(stockLevelRepository).saveAll(captor.capture());
+        return captor.getValue();
+    }
 
     private void stubValidCreateCollaborators() {
         when(warehouseRepository.findById(1L)).thenReturn(Optional.of(warehouse(1L, "WH-1", "Main")));

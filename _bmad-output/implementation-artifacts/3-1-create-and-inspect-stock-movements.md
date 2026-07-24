@@ -4,7 +4,7 @@ baseline_commit: bdaa9b6669f8999865f67a456617a60915eca3c6
 
 # Story 3.1: Create and inspect stock movements
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

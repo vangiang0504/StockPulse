@@ -46,25 +46,25 @@ development_status:
 
   epic-2: in-progress
   2-1-add-the-remaining-stockpulse-schema-migrations: done
-  2-2-expose-stock-levels-low-stock-and-summary-apis: review
-  2-3-cache-individual-stock-lookups-and-invalidate-after-commit: backlog
+  2-2-expose-stock-levels-low-stock-and-summary-apis: done
+  2-3-cache-individual-stock-lookups-and-invalidate-after-commit: done
   2-4-add-the-stock-level-screen: backlog
   2-5-refresh-and-verify-the-stock-reporting-view: backlog
   epic-2-retrospective: optional
 
   epic-3: in-progress
-  3-1-create-and-inspect-stock-movements: review
-  3-2-approve-and-complete-movements-with-ordered-locking: backlog
-  3-3-expose-movement-lifecycle-endpoints: backlog
+  3-1-create-and-inspect-stock-movements: done
+  3-2-approve-and-complete-movements-with-ordered-locking: done
+  3-3-expose-movement-lifecycle-endpoints: done
   3-4-create-movement-forms-and-movement-history: backlog
   3-5-review-approve-and-complete-movement-details: backlog
   3-6-prove-the-movement-lifecycle-and-concurrent-export-safety: backlog
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-configure-stockpulse-events-retry-and-dead-letter-routing: backlog
-  4-2-create-alerts-and-reorder-suggestions-from-committed-stock: backlog
-  4-3-send-low-stock-email-through-mailhog: backlog
+  epic-4: in-progress
+  4-1-configure-stockpulse-events-retry-and-dead-letter-routing: in-progress
+  4-2-create-alerts-and-reorder-suggestions-from-committed-stock: in-progress
+  4-3-send-low-stock-email-through-mailhog: done
   4-4-add-alert-and-reorder-action-screens: backlog
   4-5-verify-retry-to-dlq-and-idempotent-redelivery: backlog
   epic-4-retrospective: optional

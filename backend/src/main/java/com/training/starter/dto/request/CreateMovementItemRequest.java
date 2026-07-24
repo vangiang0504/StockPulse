@@ -12,6 +12,7 @@ import java.time.LocalDate;
 public record CreateMovementItemRequest(
         @Schema(description = "Product ID for this line item", example = "1")
         @NotNull(message = "Product ID is required")
+        @Positive(message = "Product ID must be positive")
         Long productId,
 
         @Schema(description = "Positive quantity to move", example = "10")

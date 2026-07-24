@@ -41,6 +41,11 @@ spring:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
 
+stockpulse:
+  alert-email:
+    from: ${ALERT_EMAIL_FROM:}
+    recipients: ${ALERT_EMAIL_RECIPIENTS:}
+
 jwt:
   secret: ${JWT_SECRET:dHJhaW5pbmctc3RhcnRlci1zZWNyZXQta2V5LW11c3QtYmUtYXQtbGVhc3QtMjU2LWJpdHMtbG9uZy1mb3Itc2VjdXJpdHk=}
   access-token-expiration: 900000
