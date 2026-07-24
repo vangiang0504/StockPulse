@@ -52,8 +52,8 @@ development_status:
   2-5-refresh-and-verify-the-stock-reporting-view: backlog
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-create-and-inspect-stock-movements: backlog
+  epic-3: in-progress
+  3-1-create-and-inspect-stock-movements: review
   3-2-approve-and-complete-movements-with-ordered-locking: backlog
   3-3-expose-movement-lifecycle-endpoints: backlog
   3-4-create-movement-forms-and-movement-history: backlog
