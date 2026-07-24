@@ -1,12 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PageEvent } from '@angular/material/paginator';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { PageResponse } from '../../../core/models/page-response.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Warehouse } from '../warehouse.model';
 import { WarehouseService } from '../warehouse.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { WarehouseListComponent } from './warehouse-list.component';
 
 describe('WarehouseListComponent', () => {
@@ -14,17 +16,22 @@ describe('WarehouseListComponent', () => {
   let component: WarehouseListComponent;
   let warehouseService: jasmine.SpyObj<WarehouseService>;
   let notification: jasmine.SpyObj<NotificationService>;
+  let authService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
     warehouseService = jasmine.createSpyObj<WarehouseService>('WarehouseService', ['getWarehouses']);
     notification = jasmine.createSpyObj<NotificationService>('NotificationService', ['error']);
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['getRole']);
     warehouseService.getWarehouses.and.returnValue(of(pageResponse([warehouse])));
+    authService.getRole.and.returnValue('ADMIN');
 
     await TestBed.configureTestingModule({
       imports: [WarehouseListComponent, NoopAnimationsModule],
       providers: [
+        provideRouter([]),
         { provide: WarehouseService, useValue: warehouseService },
-        { provide: NotificationService, useValue: notification }
+        { provide: NotificationService, useValue: notification },
+        { provide: AuthService, useValue: authService }
       ]
     }).compileComponents();
 

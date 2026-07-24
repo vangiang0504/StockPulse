@@ -42,6 +42,16 @@ export const routes: Routes = [
       {
         path: 'warehouses',
         loadComponent: () => import('./features/warehouses/warehouse-list/warehouse-list.component').then(m => m.WarehouseListComponent)
+      },
+      {
+        path: 'warehouses/create',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () => import('./features/warehouses/warehouse-form/warehouse-form.component').then(m => m.WarehouseFormComponent)
+      },
+      {
+        path: 'warehouses/:id/edit',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () => import('./features/warehouses/warehouse-form/warehouse-form.component').then(m => m.WarehouseFormComponent)
       }
     ]
   },

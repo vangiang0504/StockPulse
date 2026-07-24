@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../core/models/api-response.model';
@@ -16,6 +16,15 @@ export class ProductService {
 
   getProducts(page = 0, size = 20): Observable<ApiResponse<PageResponse<ProductSummary>>> {
     return this.http.get<ApiResponse<PageResponse<ProductSummary>>>(`${this.apiUrl}?page=${page}&size=${size}`);
+  }
+
+  /** Full-text search over SKU and name (backend requires a non-blank query). */
+  searchProducts(query: string, page = 0, size = 20): Observable<ApiResponse<PageResponse<ProductSummary>>> {
+    const params = new HttpParams()
+      .set('q', query)
+      .set('page', page)
+      .set('size', size);
+    return this.http.get<ApiResponse<PageResponse<ProductSummary>>>(`${this.apiUrl}/search`, { params });
   }
 
   getProductById(id: number): Observable<ApiResponse<Product>> {

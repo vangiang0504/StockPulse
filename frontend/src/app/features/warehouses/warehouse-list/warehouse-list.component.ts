@@ -1,17 +1,20 @@
 import { Component, OnInit } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Warehouse } from '../warehouse.model';
 import { WarehouseService } from '../warehouse.service';
 
 @Component({
   selector: 'app-warehouse-list',
   standalone: true,
-  imports: [MatTableModule, MatPaginatorModule, MatChipsModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatTableModule, MatPaginatorModule, MatChipsModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <div class="page">
       <div class="page-head">
@@ -19,6 +22,11 @@ import { WarehouseService } from '../warehouse.service';
           <h2>Warehouses</h2>
           <p class="page-subtitle">Storage locations across the network</p>
         </div>
+        @if (canManage) {
+          <a mat-raised-button color="primary" routerLink="/warehouses/create">
+            <mat-icon>add</mat-icon> New Warehouse
+          </a>
+        }
       </div>
 
       @if (loading) {
@@ -64,7 +72,8 @@ import { WarehouseService } from '../warehouse.service';
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                [class.clickable]="canManage" (click)="onRowClick(row)"></tr>
           </table>
 
           <mat-paginator
@@ -85,6 +94,7 @@ import { WarehouseService } from '../warehouse.service';
     .state mat-icon { font-size: 48px; width: 48px; height: 48px; }
     .error-state { color: #b00020; }
     .cell-strong { font-weight: 500; color: var(--sp-text); }
+    tr.clickable { cursor: pointer; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   `]
 })
@@ -101,11 +111,24 @@ export class WarehouseListComponent implements OnInit {
 
   constructor(
     private warehouseService: WarehouseService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private authService: AuthService,
+    private router: Router
   ) {}
+
+  /** Warehouse create/edit is ADMIN-only on the API, so only ADMIN gets the affordances. */
+  get canManage(): boolean {
+    return this.authService.getRole() === 'ADMIN';
+  }
 
   ngOnInit(): void {
     this.loadWarehouses();
+  }
+
+  onRowClick(warehouse: Warehouse): void {
+    if (this.canManage) {
+      this.router.navigate(['/warehouses', warehouse.id, 'edit']);
+    }
   }
 
   loadWarehouses(): void {
